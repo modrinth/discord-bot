@@ -1,3 +1,4 @@
+import { raw } from 'esbuild-raw-plugin'
 import { defineConfig } from 'tsup'
 
 export default defineConfig({
@@ -8,4 +9,5 @@ export default defineConfig({
     sourcemap: false,
     clean: true,
     minify: true,
+    esbuildPlugins: [raw()],
 })
