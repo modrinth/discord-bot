@@ -1,4 +1,5 @@
 {
+  "$schema": "https://json.schemastore.org/tsconfig",
   "compilerOptions": {
     "target": "ES2020",
     "module": "ESNext",
@@ -11,8 +12,6 @@
     "isolatedModules": true,
     "noEmit": true,
     "lib": ["esnext", "dom"],
-    "allowSyntheticDefaultImports": true,
-    "outDir": "dist"
-  },
-  "include": ["src"]
+    "allowSyntheticDefaultImports": true
+  }
 }
