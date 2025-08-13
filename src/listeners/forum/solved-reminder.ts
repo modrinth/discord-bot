@@ -1,6 +1,6 @@
 import { ThreadChannel } from 'discord.js'
 
-import { SOLVED_REMINDER_EMBED } from '@/data/forum'
+import { SOLVED_REMINDER_TEXT } from '@/data/forum'
 import { MessageListener } from '@/types'
 import { createDefaultEmbed, isByThreadOP, isInCommunitySupportThread } from '@/utils'
 
@@ -31,9 +31,7 @@ export const remindSolvedCreate: MessageListener = {
     },
     handle: async (ctx) => {
         if (!('message' in ctx)) return
-        const ch = ctx.message.channel as ThreadChannel
-        const embed = createDefaultEmbed(SOLVED_REMINDER_EMBED)
-        await ch.send({ embeds: [embed] })
+        await ctx.message.reply(SOLVED_REMINDER_TEXT)
     },
 }
 
@@ -59,7 +57,6 @@ export const remindSolvedUpdate: MessageListener = {
     handle: async (ctx) => {
         if (!('newMessage' in ctx)) return
         const ch = (ctx.newMessage as any).channel as ThreadChannel
-        const embed = createDefaultEmbed(SOLVED_REMINDER_EMBED)
-        await ch.send({ embeds: [embed] })
+        await ch.send(SOLVED_REMINDER_TEXT)
     },
 }

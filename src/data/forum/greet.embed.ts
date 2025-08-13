@@ -1,12 +1,13 @@
 import { EmbedData } from 'discord.js'
 
 const data: EmbedData = {
-    title: 'Welcome to community-support!',
     description: [
-        'Here are some tips to get help faster:',
-        '• Describe your issue clearly and include steps to reproduce.',
-        '• If your game crashed, please upload your latest log to https://mclo.gs and share the link here.',
-        '• If your issue is about a Modrinth product (site, app, API), please contact Modrinth Support instead.',
+        '**👋 Hello! Thank you for creating a new thread on Modrinth server**',
+        ' ',
+        '📃 Something went wrong with the game? Make sure to provide logs using [mclo.gs](https://mclo.gs)',
+        "❔ If you're having an issue with Modrinth product, use our [dedicated support portal](<https://support.modrinth.com>) instead",
+        ' ',
+        "🔔 Don't forget to mark your thread as solved if issue has been resolved by using </solved:1361745562063605781>",
     ].join('\n'),
 }
 
