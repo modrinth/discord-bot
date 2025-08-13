@@ -5,6 +5,15 @@ import { Client, Events, GatewayIntentBits, Partials } from 'discord.js'
 import listeners from '@/listeners'
 import { createMessageHandlers } from '@/types'
 import { tryJoinThread } from '@/utils'
+import commands from '@/commands'
+import { createCommandRegistry } from '@/commands/registry'
+import { deployCommands } from '@/commands/deploy'
+
+// Handle CLI flags before booting the bot
+if (process.argv.includes('--deploy-commands')) {
+  await deployCommands()
+  process.exit(0)
+}
 
 const client = new Client({
   intents: [
@@ -45,5 +54,11 @@ const { onCreate, onUpdate, onDelete } = createMessageHandlers(listeners, {
 client.on(Events.MessageCreate, onCreate)
 client.on(Events.MessageUpdate, onUpdate)
 client.on(Events.MessageDelete, onDelete)
+
+// Slash commands
+const commandHandlers = createCommandRegistry(commands, {
+  defaultCooldownSeconds: 3,
+})
+client.on(Events.InteractionCreate, commandHandlers.onInteractionCreate)
 
 client.login(process.env.DISCORD_BOT_TOKEN)

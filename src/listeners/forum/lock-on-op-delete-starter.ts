@@ -29,10 +29,11 @@ export const lockOnOpDeletesStarter: MessageListener = {
     if (!('message' in ctx)) return
     const ch = (ctx.message as any).channel as ThreadChannel
     try {
-      if (!ch.archived) await ch.setArchived(true, 'OP deleted starter message')
-      if (!ch.locked) await ch.setLocked(true, 'OP deleted starter message')
       const embed = createDefaultEmbed(OP_DELETE_LOCK_EMBED)
       await ch.send({ embeds: [embed] }).catch(() => {})
+
+      if (!ch.archived) await ch.setArchived(true, 'OP deleted starter message')
+      if (!ch.locked) await ch.setLocked(true, 'OP deleted starter message')
     } catch {
       // Ignore permission errors
     }

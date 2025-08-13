@@ -6,7 +6,8 @@
   "private": true,
   "scripts": {
     "build": "tsup",
-    "dev": "pnpm run build && node dist/index.cjs",
+    "deploy": "pnpm run build && node dist/index.js --deploy-commands",
+    "dev": "pnpm run build && node dist/index.js",
     "lint": "eslint . && prettier --check .",
     "fix": "eslint . --fix && prettier --write ."
   },
