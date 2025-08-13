@@ -2,7 +2,7 @@ import { ThreadChannel } from 'discord.js'
 
 import { SOLVED_REMINDER_TEXT } from '@/data/forum'
 import { MessageListener } from '@/types'
-import { createDefaultEmbed, isByThreadOP, isInCommunitySupportThread } from '@/utils'
+import { isByThreadOP, isInCommunitySupportThread } from '@/utils'
 
 const solvedPhrases = [
     /\b(thanks|thank you|ty|tysm|appreciate it)\b/i,
