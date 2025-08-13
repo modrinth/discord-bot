@@ -20,17 +20,30 @@ export const remindSolvedCreate: MessageListener = {
     event: 'create',
     description: 'When OP posts a solved-like message, remind them to use /solved (create).',
     priority: 5,
-    cooldownMs: 60_000,
     filter: { allowBots: false, allowDMs: false },
     match: async (ctx) => {
         if (!('message' in ctx)) return false
         const { message } = ctx
-        if (!isInCommunitySupportThread(message)) return false
-        if (!(await isByThreadOP(message))) return false
-        return contentIndicatesSolved(message.content)
+        const debug = process.env.DEBUG_FORUM_LISTENERS === '1'
+        if (!isInCommunitySupportThread(message)) {
+            debug &&
+                console.log('[solved:create] not in forum thread', {
+                    guildId: message.guildId,
+                    channelId: message.channelId,
+                })
+            return false
+        }
+        if (!(await isByThreadOP(message))) {
+            debug && console.log('[solved:create] not by OP or starter fetch failed')
+            return false
+        }
+        const ok = contentIndicatesSolved(message.content)
+        debug && console.log('[solved:create] content check', { content: message.content, ok })
+        return ok
     },
     handle: async (ctx) => {
         if (!('message' in ctx)) return
+        console.log(ctx.now)
         await ctx.message.reply(SOLVED_REMINDER_TEXT)
     },
 }
@@ -40,7 +53,6 @@ export const remindSolvedUpdate: MessageListener = {
     event: 'update',
     description: 'When OP edits a message to indicate solved, remind them to use /solved (update).',
     priority: 5,
-    cooldownMs: 60_000,
     filter: { allowBots: false, allowDMs: false },
     match: async (ctx) => {
         if (!('newMessage' in ctx)) return false
@@ -50,9 +62,15 @@ export const remindSolvedUpdate: MessageListener = {
         const content = (newMessage as any).content as string | undefined
         const authorId = (newMessage as any).author?.id as string | undefined
         if (!content || !authorId) return false
-        if (!isInCommunitySupportThread(newMessage as any)) return false
+        const debug = process.env.DEBUG_FORUM_LISTENERS === '1'
+        if (!isInCommunitySupportThread(newMessage as any)) {
+            debug && console.log('[solved:update] not in forum thread')
+            return false
+        }
         // Fetch starter to validate OP; we need a Message for isByThreadOP, so cast and rely on cache
-        return contentIndicatesSolved(content) && (await isByThreadOP(newMessage as any))
+        const ok = contentIndicatesSolved(content) && (await isByThreadOP(newMessage as any))
+        debug && console.log('[solved:update] content+op check', { content, ok })
+        return ok
     },
     handle: async (ctx) => {
         if (!('newMessage' in ctx)) return
