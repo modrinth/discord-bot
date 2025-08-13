@@ -1,4 +1,9 @@
-import { Client, Message, PartialMessage, PermissionResolvable } from 'discord.js';
+import {
+  Client,
+  Message,
+  PartialMessage,
+  PermissionResolvable,
+} from 'discord.js'
 
 /**
  * Immutable context for handling a Discord message within the listener pipeline.
@@ -8,31 +13,31 @@ import { Client, Message, PartialMessage, PermissionResolvable } from 'discord.j
  */
 export type MessageContext = {
   /** Discord.js client instance. */
-  client: Client;
+  client: Client
   /** The incoming message to evaluate. */
-  message: Message;
+  message: Message
   /** Milliseconds since the UNIX epoch captured at pipeline start. */
-  now: number;
+  now: number
   /** Optional dependency container for app services (db, cache, config). */
-  services?: Record<string, unknown>;
-};
+  services?: Record<string, unknown>
+}
 
 /** Context for message edit events. @public */
 export type MessageUpdateContext = {
-  client: Client;
-  oldMessage: Message | PartialMessage;
-  newMessage: Message | PartialMessage;
-  now: number;
-  services?: Record<string, unknown>;
-};
+  client: Client
+  oldMessage: Message | PartialMessage
+  newMessage: Message | PartialMessage
+  now: number
+  services?: Record<string, unknown>
+}
 
 /** Context for message delete events. @public */
 export type MessageDeleteContext = {
-  client: Client;
-  message: Message | PartialMessage;
-  now: number;
-  services?: Record<string, unknown>;
-};
+  client: Client
+  message: Message | PartialMessage
+  now: number
+  services?: Record<string, unknown>
+}
 
 /**
  * Cheap, synchronous checks evaluated before the match predicate.
@@ -43,59 +48,59 @@ export type MessageDeleteContext = {
  */
 export type ListenerFilter = {
   /** Allow messages from bot accounts. Defaults to false. */
-  allowBots?: boolean;
+  allowBots?: boolean
   /** Allow direct messages. Defaults to false. */
-  allowDMs?: boolean;
+  allowDMs?: boolean
   /** Only allow messages from these guilds. */
-  guildIds?: string[];
+  guildIds?: string[]
   /** Only allow messages from these channels. */
-  channelIds?: string[];
+  channelIds?: string[]
   /** Only allow authors with one of these user IDs. */
-  allowedAuthorIds?: string[];
+  allowedAuthorIds?: string[]
   /** Disallow authors with one of these user IDs. */
-  disallowedAuthorIds?: string[];
+  disallowedAuthorIds?: string[]
   /** Require the member to have all of these role IDs. Guild-only. */
-  requireRoleIds?: string[];
+  requireRoleIds?: string[]
   /** Disallow the member if they have any of these role IDs. Guild-only. */
-  bannedRoleIds?: string[];
+  bannedRoleIds?: string[]
   /** Require the member to have these permissions. Guild-only. */
-  requirePermissions?: PermissionResolvable[];
-};
+  requirePermissions?: PermissionResolvable[]
+}
 
 /**
  * Which message event this listener handles.
  * @public
  */
-export type MessageEventKind = 'create' | 'update' | 'delete';
+export type MessageEventKind = 'create' | 'update' | 'delete'
 
 type EventBase = {
-  id: string;
-  description?: string;
-  priority?: number;
-  cooldownMs?: number;
-  filter?: ListenerFilter;
-};
+  id: string
+  description?: string
+  priority?: number
+  cooldownMs?: number
+  filter?: ListenerFilter
+}
 
 export type CreateListener = EventBase & {
-  event: 'create';
-  match?: (ctx: MessageContext) => boolean | Promise<boolean>;
-  handle: (ctx: MessageContext) => Promise<void>;
-};
+  event: 'create'
+  match?: (ctx: MessageContext) => boolean | Promise<boolean>
+  handle: (ctx: MessageContext) => Promise<void>
+}
 
 export type UpdateListener = EventBase & {
-  event: 'update';
-  match?: (ctx: MessageUpdateContext) => boolean | Promise<boolean>;
-  handle: (ctx: MessageUpdateContext) => Promise<void>;
-};
+  event: 'update'
+  match?: (ctx: MessageUpdateContext) => boolean | Promise<boolean>
+  handle: (ctx: MessageUpdateContext) => Promise<void>
+}
 
 export type DeleteListener = EventBase & {
-  event: 'delete';
-  match?: (ctx: MessageDeleteContext) => boolean | Promise<boolean>;
-  handle: (ctx: MessageDeleteContext) => Promise<void>;
-};
+  event: 'delete'
+  match?: (ctx: MessageDeleteContext) => boolean | Promise<boolean>
+  handle: (ctx: MessageDeleteContext) => Promise<void>
+}
 
 /** Single, unified message listener discriminated by `event`. */
-export type MessageListener = CreateListener | UpdateListener | DeleteListener;
+export type MessageListener = CreateListener | UpdateListener | DeleteListener
 
 /**
  * Controls pipeline behavior and lifecycle hooks.
@@ -103,54 +108,96 @@ export type MessageListener = CreateListener | UpdateListener | DeleteListener;
  */
 export type MessagePipelineOptions = {
   /** If 'first', stop after the first listener handles the message; if 'all', run all that match. */
-  mode?: 'first' | 'all';
+  mode?: 'first' | 'all'
   /** Optional error hook called when a listener throws. */
-  onError?: (listener: MessageListener, ctx: MessageContext | MessageUpdateContext | MessageDeleteContext, error: unknown) => void | Promise<void>;
+  onError?: (
+    listener: MessageListener,
+    ctx: MessageContext | MessageUpdateContext | MessageDeleteContext,
+    error: unknown,
+  ) => void | Promise<void>
   /** Optional hook invoked after a listener successfully handles a message. */
-  onHandled?: (listener: MessageListener, ctx: MessageContext | MessageUpdateContext | MessageDeleteContext) => void | Promise<void>;
-};
+  onHandled?: (
+    listener: MessageListener,
+    ctx: MessageContext | MessageUpdateContext | MessageDeleteContext,
+  ) => void | Promise<void>
+}
 
 /**
  * @internal Shared filter evaluation for any context with a message-like value.
  */
-function passesFilterGeneric(message: Message | PartialMessage, f: ListenerFilter | undefined): boolean {
-  const filter = f ?? {};
+function passesFilterGeneric(
+  message: Message | PartialMessage,
+  f: ListenerFilter | undefined,
+): boolean {
+  const filter = f ?? {}
 
   // Bots (best-effort if author is known)
-  const author = (message as Message).author;
-  if (filter.allowBots !== true && author?.bot) return false;
+  const author = (message as Message).author
+  if (filter.allowBots !== true && author?.bot) return false
 
   // DMs vs Guilds
-  const inDM = !message.guildId;
-  if (inDM && filter.allowDMs !== true) return false;
+  const inDM = !message.guildId
+  if (inDM && filter.allowDMs !== true) return false
 
   // Guild filter
-  if (filter.guildIds && message.guildId && !filter.guildIds.includes(message.guildId)) return false;
+  if (
+    filter.guildIds &&
+    message.guildId &&
+    !filter.guildIds.includes(message.guildId)
+  )
+    return false
 
   // Channel filter
-  if (filter.channelIds && message.channelId && !filter.channelIds.includes(message.channelId)) return false;
+  if (
+    filter.channelIds &&
+    message.channelId &&
+    !filter.channelIds.includes(message.channelId)
+  )
+    return false
 
   // Author allow/deny lists
   if (author) {
-    if (filter.allowedAuthorIds && !filter.allowedAuthorIds.includes(author.id)) return false;
-    if (filter.disallowedAuthorIds && filter.disallowedAuthorIds.includes(author.id)) return false;
+    if (filter.allowedAuthorIds && !filter.allowedAuthorIds.includes(author.id))
+      return false
+    if (
+      filter.disallowedAuthorIds &&
+      filter.disallowedAuthorIds.includes(author.id)
+    )
+      return false
   } else {
     // If author constraints exist but we don't know the author, fail fast
-    if (filter.allowedAuthorIds?.length || filter.disallowedAuthorIds?.length) return false;
+    if (filter.allowedAuthorIds?.length || filter.disallowedAuthorIds?.length)
+      return false
   }
 
   // Role/permission filters (guild-only and only when member is known)
-  const member = (message as Message).member;
+  const member = (message as Message).member
   if (member) {
-    const memberRoles = member.roles.cache;
-    if (filter.requireRoleIds && !filter.requireRoleIds.every((r) => memberRoles.has(r))) return false;
-    if (filter.bannedRoleIds && filter.bannedRoleIds.some((r) => memberRoles.has(r))) return false;
-    if (filter.requirePermissions && !member.permissions.has(filter.requirePermissions, true)) return false;
-  } else if (filter.requireRoleIds?.length || filter.bannedRoleIds?.length || filter.requirePermissions?.length) {
-    return false;
+    const memberRoles = member.roles.cache
+    if (
+      filter.requireRoleIds &&
+      !filter.requireRoleIds.every((r) => memberRoles.has(r))
+    )
+      return false
+    if (
+      filter.bannedRoleIds &&
+      filter.bannedRoleIds.some((r) => memberRoles.has(r))
+    )
+      return false
+    if (
+      filter.requirePermissions &&
+      !member.permissions.has(filter.requirePermissions, true)
+    )
+      return false
+  } else if (
+    filter.requireRoleIds?.length ||
+    filter.bannedRoleIds?.length ||
+    filter.requirePermissions?.length
+  ) {
+    return false
   }
 
-  return true;
+  return true
 }
 
 /**
@@ -159,93 +206,112 @@ function passesFilterGeneric(message: Message | PartialMessage, f: ListenerFilte
  */
 export function createMessageHandlers(
   listeners: MessageListener[],
-  options?: MessagePipelineOptions
+  options?: MessagePipelineOptions,
 ): {
-  onCreate: (message: Message) => Promise<void>;
-  onUpdate: (oldMessage: Message | PartialMessage, newMessage: Message | PartialMessage) => Promise<void>;
-  onDelete: (message: Message | PartialMessage) => Promise<void>;
+  onCreate: (message: Message) => Promise<void>
+  onUpdate: (
+    oldMessage: Message | PartialMessage,
+    newMessage: Message | PartialMessage,
+  ) => Promise<void>
+  onDelete: (message: Message | PartialMessage) => Promise<void>
 } {
-  const ordered = [...listeners].sort((a, b) => (a.priority ?? 0) - (b.priority ?? 0));
+  const ordered = [...listeners].sort(
+    (a, b) => (a.priority ?? 0) - (b.priority ?? 0),
+  )
 
-  const createList = ordered.filter((l): l is CreateListener => l.event === 'create');
-  const updateList = ordered.filter((l): l is UpdateListener => l.event === 'update');
-  const deleteList = ordered.filter((l): l is DeleteListener => l.event === 'delete');
+  const createList = ordered.filter(
+    (l): l is CreateListener => l.event === 'create',
+  )
+  const updateList = ordered.filter(
+    (l): l is UpdateListener => l.event === 'update',
+  )
+  const deleteList = ordered.filter(
+    (l): l is DeleteListener => l.event === 'delete',
+  )
 
-  const cooldowns = new Map<string, number>();
+  const cooldowns = new Map<string, number>()
 
   const onCreate = async (message: Message) => {
-    const now = Date.now();
-    const ctx: MessageContext = { client: message.client, message, now };
+    const now = Date.now()
+    const ctx: MessageContext = { client: message.client, message, now }
     for (const l of createList) {
-      if (!passesFilterGeneric(message, l.filter)) continue;
+      if (!passesFilterGeneric(message, l.filter)) continue
       if (l.cooldownMs) {
-        const uid = message.author?.id;
-        if (!uid) continue;
-        const key = `${l.id}:${uid}`;
-        const readyAt = cooldowns.get(key) ?? 0;
-        if (readyAt > now) continue;
-        cooldowns.set(key, now + l.cooldownMs);
+        const uid = message.author?.id
+        if (!uid) continue
+        const key = `${l.id}:${uid}`
+        const readyAt = cooldowns.get(key) ?? 0
+        if (readyAt > now) continue
+        cooldowns.set(key, now + l.cooldownMs)
       }
-      if (l.match && !(await l.match(ctx))) continue;
+      if (l.match && !(await l.match(ctx))) continue
       try {
-        await l.handle(ctx);
-        if (options?.onHandled) await options.onHandled(l, ctx);
+        await l.handle(ctx)
+        if (options?.onHandled) await options.onHandled(l, ctx)
       } catch (err) {
-        if (options?.onError) await options.onError(l, ctx, err);
+        if (options?.onError) await options.onError(l, ctx, err)
       }
-      if ((options?.mode ?? 'all') === 'first') break;
+      if ((options?.mode ?? 'all') === 'first') break
     }
-  };
+  }
 
-  const onUpdate = async (oldMessage: Message | PartialMessage, newMessage: Message | PartialMessage) => {
-    const client = (newMessage as Message).client ?? (oldMessage as Message).client;
-    const now = Date.now();
-    const ctx: MessageUpdateContext = { client, oldMessage, newMessage, now };
+  const onUpdate = async (
+    oldMessage: Message | PartialMessage,
+    newMessage: Message | PartialMessage,
+  ) => {
+    const client =
+      (newMessage as Message).client ?? (oldMessage as Message).client
+    const now = Date.now()
+    const ctx: MessageUpdateContext = { client, oldMessage, newMessage, now }
     for (const l of updateList) {
-      const msg = newMessage;
-      if (!passesFilterGeneric(msg, l.filter)) continue;
+      const msg = newMessage
+      if (!passesFilterGeneric(msg, l.filter)) continue
       if (l.cooldownMs) {
-        const uid = (msg as Message).author?.id;
-        if (!uid) continue;
-        const key = `${l.id}:${uid}`;
-        const readyAt = cooldowns.get(key) ?? 0;
-        if (readyAt > now) continue;
-        cooldowns.set(key, now + l.cooldownMs);
+        const uid = (msg as Message).author?.id
+        if (!uid) continue
+        const key = `${l.id}:${uid}`
+        const readyAt = cooldowns.get(key) ?? 0
+        if (readyAt > now) continue
+        cooldowns.set(key, now + l.cooldownMs)
       }
-      if (l.match && !(await l.match(ctx))) continue;
+      if (l.match && !(await l.match(ctx))) continue
       try {
-        await l.handle(ctx);
-        if (options?.onHandled) await options.onHandled(l, ctx as any);
+        await l.handle(ctx)
+        if (options?.onHandled) await options.onHandled(l, ctx as any)
       } catch (err) {
-        if (options?.onError) await options.onError(l, ctx as any, err);
+        if (options?.onError) await options.onError(l, ctx as any, err)
       }
-      if ((options?.mode ?? 'all') === 'first') break;
+      if ((options?.mode ?? 'all') === 'first') break
     }
-  };
+  }
 
   const onDelete = async (message: Message | PartialMessage) => {
-    const now = Date.now();
-    const ctx: MessageDeleteContext = { client: (message as Message).client, message, now };
-    for (const l of deleteList) {
-      if (!passesFilterGeneric(message, l.filter)) continue;
-      if (l.cooldownMs) {
-        const uid = (message as Message).author?.id;
-        if (!uid) continue;
-        const key = `${l.id}:${uid}`;
-        const readyAt = cooldowns.get(key) ?? 0;
-        if (readyAt > now) continue;
-        cooldowns.set(key, now + l.cooldownMs);
-      }
-      if (l.match && !(await l.match(ctx))) continue;
-      try {
-        await l.handle(ctx);
-        if (options?.onHandled) await options.onHandled(l, ctx as any);
-      } catch (err) {
-        if (options?.onError) await options.onError(l, ctx as any, err);
-      }
-      if ((options?.mode ?? 'all') === 'first') break;
+    const now = Date.now()
+    const ctx: MessageDeleteContext = {
+      client: (message as Message).client,
+      message,
+      now,
     }
-  };
+    for (const l of deleteList) {
+      if (!passesFilterGeneric(message, l.filter)) continue
+      if (l.cooldownMs) {
+        const uid = (message as Message).author?.id
+        if (!uid) continue
+        const key = `${l.id}:${uid}`
+        const readyAt = cooldowns.get(key) ?? 0
+        if (readyAt > now) continue
+        cooldowns.set(key, now + l.cooldownMs)
+      }
+      if (l.match && !(await l.match(ctx))) continue
+      try {
+        await l.handle(ctx)
+        if (options?.onHandled) await options.onHandled(l, ctx as any)
+      } catch (err) {
+        if (options?.onError) await options.onError(l, ctx as any, err)
+      }
+      if ((options?.mode ?? 'all') === 'first') break
+    }
+  }
 
-  return { onCreate, onUpdate, onDelete };
+  return { onCreate, onUpdate, onDelete }
 }

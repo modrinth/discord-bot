@@ -19,6 +19,7 @@ export default tseslint.config(
   {
     rules: {
       '@typescript-eslint/no-type-alias': 'off',
+      '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/ban-ts-comment': 'off',
       '@typescript-eslint/prefer-literal-enum-member': 'off',
     },
