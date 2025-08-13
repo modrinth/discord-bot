@@ -3,6 +3,7 @@ import { SlashCommandBuilder, Snowflake } from 'discord.js'
 import type { ChatInputCommand } from '@/types/commands'
 
 import { OP_MARKED_SOLVED_TEXT } from '../data/forum/'
+import { OP_ONLY_ERROR_TEXT, FORUM_ONLY_ERROR_TEXT } from '../data/errors/'
 
 export const solvedCommand: ChatInputCommand = {
     data: new SlashCommandBuilder()
@@ -27,13 +28,13 @@ export const solvedCommand: ChatInputCommand = {
                 })
             } else {
                 await interaction.reply({
-                    content: 'This command can be only executed by OP.',
+                    content: OP_ONLY_ERROR_TEXT,
                     flags: 'Ephemeral',
                 })
             }
         } else {
             await interaction.reply({
-                content: 'This command can be only used in forum threads.',
+                content: FORUM_ONLY_ERROR_TEXT,
                 flags: 'Ephemeral',
             })
         }
