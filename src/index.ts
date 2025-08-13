@@ -3,11 +3,9 @@ import 'dotenv/config'
 import { Client, Events, GatewayIntentBits, Partials } from 'discord.js'
 
 import commands from '@/commands'
-import { deployCommands } from '@/commands/deploy'
-import { createCommandRegistry } from '@/commands/registry'
 import listeners from '@/listeners'
 import { createMessageHandlers } from '@/types'
-import { tryJoinThread } from '@/utils'
+import { createCommandRegistry, deployCommands, tryJoinThread } from '@/utils'
 
 // Handle CLI flags before booting the bot
 if (process.argv.includes('--deploy-commands')) {

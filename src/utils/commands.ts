@@ -1,5 +1,13 @@
-import { Collection, Interaction, PermissionsBitField, SlashCommandBuilder } from 'discord.js'
+import {
+    Collection,
+    Interaction,
+    PermissionsBitField,
+    REST,
+    Routes,
+    SlashCommandBuilder,
+} from 'discord.js'
 
+import commands from '../commands/'
 import type {
     AnyCommand,
     CommandHandlerOptions,
@@ -101,4 +109,20 @@ export function createCommandRegistry(
         onInteractionCreate,
         getAllSlashCommandData,
     }
+}
+
+export async function deployCommands() {
+    const token = process.env.DISCORD_BOT_TOKEN
+    const clientId = process.env.DISCORD_CLIENT_ID
+    if (!token || !clientId) {
+        console.error('Missing DISCORD_BOT_TOKEN or DISCORD_CLIENT_ID')
+        process.exit(1)
+    }
+
+    const registry = createCommandRegistry(commands)
+    const body = registry.getAllSlashCommandData()
+
+    const rest = new REST().setToken(token)
+    await rest.put(Routes.applicationCommands(clientId), { body })
+    console.log(`Registered ${body.length} application command(s).`)
 }
