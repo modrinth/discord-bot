@@ -6,6 +6,7 @@ Required:
 
 - `DISCORD_BOT_TOKEN`: Bot token for login.
 - `COMMUNITY_SUPPORT_FORUM_ID`: Channel ID of the community-support forum.
+- `COMMUNITY_SUPPORT_FORUM_SOLVED_TAG_ID`: Tag ID of the solved tag for community-support forum.
 
 Optional embed styling (used by utils/embeds.ts):
 

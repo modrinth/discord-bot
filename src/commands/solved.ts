@@ -1,8 +1,8 @@
-import { SlashCommandBuilder } from 'discord.js'
+import { SlashCommandBuilder, Snowflake } from 'discord.js'
 
 import type { ChatInputCommand } from '@/types/commands'
 
-import { OP_MARKED_SOLVED } from '../data/forum/'
+import { OP_MARKED_SOLVED_TEXT } from '../data/forum/'
 
 export const solvedCommand: ChatInputCommand = {
     data: new SlashCommandBuilder()
@@ -16,9 +16,15 @@ export const solvedCommand: ChatInputCommand = {
     async execute(interaction) {
         if (interaction.channel?.isThread()) {
             if (interaction.channel.ownerId === interaction.user.id) {
-                await interaction.reply(OP_MARKED_SOLVED)
+                await interaction.reply(OP_MARKED_SOLVED_TEXT)
 
-                await interaction.channel.setArchived(true, 'Thread marked as solved.')
+                await interaction.channel.edit({
+                    archived: true,
+                    appliedTags: [
+                        ...interaction.channel.appliedTags,
+                        process.env.COMMUNITY_SUPPORT_FORUM_SOLVED_TAG_ID as Snowflake,
+                    ],
+                })
             } else {
                 await interaction.reply({
                     content: 'This command can be only executed by OP.',
