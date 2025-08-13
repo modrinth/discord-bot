@@ -6,7 +6,7 @@ import { createDefaultEmbed } from '../../utils/embeds'
 import {
   isInCommunitySupportThread,
   isThreadStarterMessage,
-} from '../../utils/thread'
+} from '../../utils/threads'
 
 export const greetCommunitySupport: CreateListener = {
   id: 'forum:community-support:greet',

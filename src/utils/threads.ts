@@ -1,4 +1,4 @@
-import { AnyThreadChannel, ThreadChannel } from 'discord.js'
+import { AnyThreadChannel, Message, ThreadChannel } from 'discord.js'
 
 /**
  * Attempts to join a thread, ignoring errors and no-op if already joined.
@@ -16,5 +16,41 @@ export async function tryJoinThread(
     await thread.join()
   } catch {
     // Silently ignore permission/api errors; thread events may still flow if already joined
+  }
+}
+
+/** Returns true if the message is in a thread under the #community-support forum. */
+export function isInCommunitySupportThread(
+  message: Message,
+): message is Message & { channel: ThreadChannel } {
+  if (!message.guildId) return false
+  const ch = message.channel
+  if (!('isThread' in ch) || !ch.isThread()) return false
+  return ch.parentId === process.env.COMMUNITY_SUPPORT_FORUM_ID
+}
+
+/** Returns true if the message is the starter message of its thread. */
+export async function isThreadStarterMessage(
+  message: Message,
+): Promise<boolean> {
+  const ch = message.channel
+  if (!('isThread' in ch) || !ch.isThread()) return false
+  try {
+    const starter = await ch.fetchStarterMessage()
+    return !!starter && starter.id === message.id
+  } catch {
+    return false
+  }
+}
+
+/** Returns true if the given message was authored by the thread starter (OP). */
+export async function isByThreadOP(message: Message): Promise<boolean> {
+  const ch = message.channel
+  if (!('isThread' in ch) || !ch.isThread()) return false
+  try {
+    const starter = await ch.fetchStarterMessage()
+    return !!starter && starter.author?.id === message.author.id
+  } catch {
+    return false
   }
 }

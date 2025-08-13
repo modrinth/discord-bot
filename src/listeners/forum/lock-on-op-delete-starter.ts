@@ -3,7 +3,7 @@ import { ThreadChannel } from 'discord.js'
 import { OP_DELETE_LOCK_EMBED } from '../../data/forum'
 import { MessageListener } from '../../types'
 import { createDefaultEmbed } from '../../utils/embeds'
-import { isInCommunitySupportThread } from '../../utils/thread'
+import { isInCommunitySupportThread } from '../../utils/threads'
 
 export const lockOnOpDeletesStarter: MessageListener = {
   id: 'forum:community-support:lock-on-op-delete-starter',

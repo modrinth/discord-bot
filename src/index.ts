@@ -2,9 +2,9 @@ import 'dotenv/config'
 
 import { Client, Events, GatewayIntentBits, Partials } from 'discord.js'
 
-import listeners from './listeners/index'
-import { createMessageHandlers } from './types'
-import { tryJoinThread } from './utils/threads'
+import listeners from '@/listeners'
+import { createMessageHandlers } from '@/types'
+import { tryJoinThread } from '@/utils'
 
 const client = new Client({
   intents: [
