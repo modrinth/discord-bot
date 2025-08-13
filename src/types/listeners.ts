@@ -72,7 +72,6 @@ type EventBase = {
     id: string
     description?: string
     priority?: number
-    cooldownMs?: number
     filter?: ListenerFilter
 }
 
@@ -194,21 +193,12 @@ export function createMessageHandlers(
     const updateList = ordered.filter((l): l is UpdateListener => l.event === 'update')
     const deleteList = ordered.filter((l): l is DeleteListener => l.event === 'delete')
 
-    const cooldowns = new Map<string, number>()
-
     const onCreate = async (message: Message) => {
+        console.log(message)
         const now = Date.now()
         const ctx: MessageContext = { client: message.client, message, now }
         for (const l of createList) {
             if (!passesFilterGeneric(message, l.filter)) continue
-            if (l.cooldownMs) {
-                const uid = message.author?.id
-                if (!uid) continue
-                const key = `${l.id}:${uid}`
-                const readyAt = cooldowns.get(key) ?? 0
-                if (readyAt > now) continue
-                cooldowns.set(key, now + l.cooldownMs)
-            }
             if (l.match && !(await l.match(ctx))) continue
             try {
                 await l.handle(ctx)
@@ -230,14 +220,6 @@ export function createMessageHandlers(
         for (const l of updateList) {
             const msg = newMessage
             if (!passesFilterGeneric(msg, l.filter)) continue
-            if (l.cooldownMs) {
-                const uid = (msg as Message).author?.id
-                if (!uid) continue
-                const key = `${l.id}:${uid}`
-                const readyAt = cooldowns.get(key) ?? 0
-                if (readyAt > now) continue
-                cooldowns.set(key, now + l.cooldownMs)
-            }
             if (l.match && !(await l.match(ctx))) continue
             try {
                 await l.handle(ctx)
@@ -258,14 +240,6 @@ export function createMessageHandlers(
         }
         for (const l of deleteList) {
             if (!passesFilterGeneric(message, l.filter)) continue
-            if (l.cooldownMs) {
-                const uid = (message as Message).author?.id
-                if (!uid) continue
-                const key = `${l.id}:${uid}`
-                const readyAt = cooldowns.get(key) ?? 0
-                if (readyAt > now) continue
-                cooldowns.set(key, now + l.cooldownMs)
-            }
             if (l.match && !(await l.match(ctx))) continue
             try {
                 await l.handle(ctx)
