@@ -32,6 +32,8 @@ export async function isThreadStarterMessage(message: Message): Promise<boolean>
     const ch = message.channel
     if (!('isThread' in ch) || !ch.isThread()) return false
     try {
+        // Ensure we're in the thread so we can fetch the starter reliably
+        await tryJoinThread(ch as ThreadChannel)
         const starter = await ch.fetchStarterMessage()
         return !!starter && starter.id === message.id
     } catch {
@@ -44,6 +46,8 @@ export async function isByThreadOP(message: Message): Promise<boolean> {
     const ch = message.channel
     if (!('isThread' in ch) || !ch.isThread()) return false
     try {
+        // Ensure we're in the thread so we can fetch the starter reliably
+        await tryJoinThread(ch as ThreadChannel)
         const starter = await ch.fetchStarterMessage()
         return !!starter && starter.author?.id === message.author.id
     } catch {
