@@ -4,8 +4,9 @@ import { Client, Events, GatewayIntentBits, Partials } from 'discord.js'
 
 import commands from '@/commands'
 import listeners from '@/listeners'
-import { createMessageHandlers } from '@/types'
+import reactionListeners from '@/listeners/reaction'
 import { createCommandRegistry, deployCommands, tryJoinThread } from '@/utils'
+import { createMessageHandlers, createReactionHandlers } from './types/listeners'
 
 // Handle CLI flags before booting the bot
 if (process.argv.includes('--deploy-commands')) {
@@ -18,8 +19,9 @@ const client = new Client({
         GatewayIntentBits.Guilds,
         GatewayIntentBits.GuildMessages,
         GatewayIntentBits.MessageContent,
+        GatewayIntentBits.GuildMessageReactions,
     ],
-    partials: [Partials.Message, Partials.Channel, Partials.User],
+    partials: [Partials.Message, Partials.Channel, Partials.User, Partials.Reaction],
 })
 
 client.once(Events.ClientReady, async (readyClient) => {
@@ -45,7 +47,8 @@ client.on(Events.ThreadCreate, async (thread) => {
     }
 })
 
-const { onCreate, onUpdate, onDelete } = createMessageHandlers(listeners, {
+const { onCreate, onUpdate, onDelete } = createMessageHandlers(listeners, { mode: 'all' })
+const { onReactionAdd, onReactionRemove } = createReactionHandlers(reactionListeners, {
     mode: 'all',
 })
 
@@ -58,5 +61,9 @@ const commandHandlers = createCommandRegistry(commands, {
     defaultCooldownSeconds: 3,
 })
 client.on(Events.InteractionCreate, commandHandlers.onInteractionCreate)
+
+// Reaction listeners
+client.on(Events.MessageReactionAdd, onReactionAdd)
+client.on(Events.MessageReactionRemove, onReactionRemove)
 
 client.login(process.env.DISCORD_BOT_TOKEN)

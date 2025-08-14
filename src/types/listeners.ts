@@ -1,4 +1,13 @@
-import { Client, Message, PartialMessage, PermissionResolvable } from 'discord.js'
+import {
+    Client,
+    Message,
+    MessageReaction,
+    PartialMessage,
+    PartialMessageReaction,
+    PartialUser,
+    PermissionResolvable,
+    User,
+} from 'discord.js'
 
 /**
  * Immutable context for handling a Discord message within the listener pipeline.
@@ -96,6 +105,24 @@ export type DeleteListener = EventBase & {
 /** Single, unified message listener discriminated by `event`. */
 export type MessageListener = CreateListener | UpdateListener | DeleteListener
 
+/** Context for a message reaction add/remove event. @public */
+export type MessageReactContext = {
+    client: Client
+    reaction: MessageReaction | PartialMessageReaction
+    user: User | PartialUser
+    now: number
+    services?: Record<string, unknown>
+}
+
+/** Which reaction event this listener handles. @public */
+export type MessageReactEventKind = 'reactAdd' | 'reactRemove'
+
+export type MessageReactListener = EventBase & {
+    event: MessageReactEventKind
+    match?: (ctx: MessageReactContext) => boolean | Promise<boolean>
+    handle: (ctx: MessageReactContext) => Promise<void>
+}
+
 /**
  * Controls pipeline behavior and lifecycle hooks.
  * @public
@@ -115,6 +142,8 @@ export type MessagePipelineOptions = {
         ctx: MessageContext | MessageUpdateContext | MessageDeleteContext,
     ) => void | Promise<void>
 }
+
+export type MessageReactPipelineOptions = MessagePipelineOptions
 
 /**
  * @internal Shared filter evaluation for any context with a message-like value.
@@ -252,4 +281,75 @@ export function createMessageHandlers(
     }
 
     return { onCreate, onUpdate, onDelete }
+}
+
+/**
+ * Creates ready-to-wire handlers for message reaction add/remove events from a single listener list.
+ * @public
+ */
+export function createReactionHandlers(
+    listeners: MessageReactListener[],
+    options?: MessageReactPipelineOptions,
+): {
+    onReactionAdd: (
+        reaction: MessageReaction | PartialMessageReaction,
+        user: User | PartialUser,
+    ) => Promise<void>
+    onReactionRemove: (
+        reaction: MessageReaction | PartialMessageReaction,
+        user: User | PartialUser,
+    ) => Promise<void>
+} {
+    const ordered = [...listeners].sort((a, b) => (a.priority ?? 0) - (b.priority ?? 0))
+    const addList = ordered.filter(
+        (l): l is MessageReactListener & { event: 'reactAdd' } => l.event === 'reactAdd',
+    )
+    const removeList = ordered.filter(
+        (l): l is MessageReactListener & { event: 'reactRemove' } => l.event === 'reactRemove',
+    )
+
+    const run = async (
+        list: MessageReactListener[],
+        reaction: MessageReaction | PartialMessageReaction,
+        user: User | PartialUser,
+    ) => {
+        // Resolve partials (reaction & message) best-effort
+        try {
+            if (reaction.partial) await reaction.fetch()
+        } catch {
+            return
+        }
+        const message = reaction.message
+        if (message && message.partial) {
+            try {
+                await message.fetch()
+            } catch {
+                return
+            }
+        }
+        const now = Date.now()
+        const ctx: MessageReactContext = {
+            client: (reaction as MessageReaction).client,
+            reaction,
+            user,
+            now,
+        }
+        for (const l of list) {
+            const msg = reaction.message as Message | PartialMessage | undefined
+            if (msg && !passesFilterGeneric(msg, l.filter)) continue
+            if (l.match && !(await l.match(ctx))) continue
+            try {
+                await l.handle(ctx)
+                if (options?.onHandled) await options.onHandled(l as any, ctx as any)
+            } catch (err) {
+                if (options?.onError) await options.onError(l as any, ctx as any, err)
+            }
+            if ((options?.mode ?? 'all') === 'first') break
+        }
+    }
+
+    return {
+        onReactionAdd: (reaction, user) => run(addList, reaction, user),
+        onReactionRemove: (reaction, user) => run(removeList, reaction, user),
+    }
 }
