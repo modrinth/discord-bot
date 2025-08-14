@@ -21,7 +21,7 @@ export const remindSolvedCreate: MessageListener = {
     description: 'When OP posts a solved-like message, remind them to use /solved (create).',
     priority: 5,
     filter: { allowBots: false, allowDMs: false },
-    match: async (ctx) => {
+    match: async (ctx: { message: any }) => {
         if (!('message' in ctx)) return false
         const { message } = ctx
         const debug = process.env.DEBUG_FORUM_LISTENERS === '1'
@@ -41,7 +41,7 @@ export const remindSolvedCreate: MessageListener = {
         debug && console.log('[solved:create] content check', { content: message.content, ok })
         return ok
     },
-    handle: async (ctx) => {
+    handle: async (ctx: { now: any; message: { reply: (arg0: string) => any } }) => {
         if (!('message' in ctx)) return
         console.log(ctx.now)
         await ctx.message.reply(SOLVED_REMINDER_TEXT)
@@ -54,7 +54,7 @@ export const remindSolvedUpdate: MessageListener = {
     description: 'When OP edits a message to indicate solved, remind them to use /solved (update).',
     priority: 5,
     filter: { allowBots: false, allowDMs: false },
-    match: async (ctx) => {
+    match: async (ctx: { newMessage: any }) => {
         if (!('newMessage' in ctx)) return false
         const { newMessage } = ctx
         if (!('channel' in newMessage)) return false
@@ -72,7 +72,7 @@ export const remindSolvedUpdate: MessageListener = {
         debug && console.log('[solved:update] content+op check', { content, ok })
         return ok
     },
-    handle: async (ctx) => {
+    handle: async (ctx: { newMessage: any }) => {
         if (!('newMessage' in ctx)) return
         const ch = (ctx.newMessage as any).channel as ThreadChannel
         await ch.send(SOLVED_REMINDER_TEXT)

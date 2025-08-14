@@ -1,6 +1,7 @@
+import { SlashCommandBuilder, Snowflake } from 'discord.js'
+
 import { FORUM_ONLY_ERROR_TEXT, OP_MARKED_SOLVED_TEXT, OP_ONLY_ERROR_TEXT } from '@/data'
 import type { ChatInputCommand } from '@/types/commands'
-import { SlashCommandBuilder, Snowflake } from 'discord.js'
 
 export const solvedCommand: ChatInputCommand = {
     data: new SlashCommandBuilder()

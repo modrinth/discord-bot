@@ -6,6 +6,7 @@ import commands from '@/commands'
 import listeners from '@/listeners'
 import reactionListeners from '@/listeners/reaction'
 import { createCommandRegistry, deployCommands, tryJoinThread } from '@/utils'
+
 import { createMessageHandlers, createReactionHandlers } from './types/listeners'
 
 // Handle CLI flags before booting the bot
