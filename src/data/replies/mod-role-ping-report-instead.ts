@@ -1,0 +1,1 @@
+export default `-# <:cornerdownright:${process.env.CORNER_DOWN_RIGHT_EMOJI_ID}> Please don't ping discord moderators, if you want to report a concern - either use ModMail or a new report feature, [learn more here](https://discord.com/channels/734077874708938864/734084055225597973/1353546687502745673).`
