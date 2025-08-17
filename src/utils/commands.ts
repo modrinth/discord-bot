@@ -122,6 +122,14 @@ export async function deployCommands() {
 	const body = registry.getAllSlashCommandData()
 
 	const rest = new REST().setToken(token)
-	await rest.put(Routes.applicationCommands(clientId), { body })
-	console.log(`Registered ${body.length} application command(s).`)
+
+	try {
+		await rest.put(Routes.applicationCommands(clientId), { body: [] })
+		console.log('Successfully deleted all application commands.')
+
+		await rest.put(Routes.applicationCommands(clientId), { body })
+		console.log(`Registered ${body.length} application command(s).`)
+	} catch (err) {
+		console.error(err)
+	}
 }
