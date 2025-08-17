@@ -28,7 +28,7 @@ export const lockOnOpDeletesStarter: MessageListener = {
 		if (!('message' in ctx)) return
 		const ch = (ctx.message as any).channel as ThreadChannel
 		try {
-			const embed = createDefaultEmbed(OP_DELETE_LOCK_EMBED)
+			const embed = createDefaultEmbed(OP_DELETE_LOCK_EMBED).setColor(0xff496e)
 			await ch.send({ embeds: [embed] }).catch(() => {})
 
 			if (!ch.locked) await ch.setLocked(true, 'OP deleted starter message')
