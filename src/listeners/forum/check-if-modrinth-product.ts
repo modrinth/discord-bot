@@ -26,7 +26,7 @@ export const checkIfModrinthProduct: CreateListener = {
 	match: async (ctx: { message: any }) => {
 		if (!('message' in ctx)) return false
 		const { message } = ctx
-		if (!isInCommunitySupportThread(message) && (await isThreadStarterMessage(message)))
+		if (!isInCommunitySupportThread(message) || !(await isThreadStarterMessage(message)))
 			return false
 		return contentIndicatesModrinthProduct(message.content)
 	},
