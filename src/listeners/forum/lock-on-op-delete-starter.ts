@@ -1,9 +1,8 @@
 import { ThreadChannel } from 'discord.js'
 
-import { OP_DELETE_LOCK_EMBED } from '../../data/forum'
-import { MessageListener } from '../../types'
-import { createDefaultEmbed } from '../../utils/embeds'
-import { isInCommunitySupportThread } from '../../utils/threads'
+import { OP_DELETE_LOCK_EMBED } from '@/data'
+import { MessageListener } from '@/types'
+import { createDefaultEmbed, isInCommunitySupportThread } from '@/utils'
 
 export const lockOnOpDeletesStarter: MessageListener = {
 	id: 'forum:community-support:lock-on-op-delete-starter',
@@ -12,15 +11,16 @@ export const lockOnOpDeletesStarter: MessageListener = {
 	priority: 10,
 	filter: { allowBots: true, allowDMs: false },
 	match: async (ctx) => {
-		if (!('message' in ctx)) return false
-		const { message } = ctx
-		if (!('channel' in message)) return false
-		if (!isInCommunitySupportThread(message as any)) return false
-		const ch = (message as any).channel as ThreadChannel
 		try {
-			const starter = await ch.fetchStarterMessage()
-			return !!starter && starter.id === (message as any).id
-		} catch {
+			if (!('message' in ctx)) return false
+			const { message } = ctx
+			if (!('channel' in message)) return false
+			if (!isInCommunitySupportThread(message as any)) return false
+			const ch = (message as any).channel as ThreadChannel
+			return ch.id === (message as any).id
+		} catch (err) {
+			console.error('[lockOnOpDeletesStarter] Failed to match starter message')
+			console.error(err)
 			return false
 		}
 	},
@@ -31,10 +31,11 @@ export const lockOnOpDeletesStarter: MessageListener = {
 			const embed = createDefaultEmbed(OP_DELETE_LOCK_EMBED)
 			await ch.send({ embeds: [embed] }).catch(() => {})
 
-			if (!ch.archived) await ch.setArchived(true, 'OP deleted starter message')
 			if (!ch.locked) await ch.setLocked(true, 'OP deleted starter message')
-		} catch {
-			// Ignore permission errors
+			if (!ch.archived) await ch.setArchived(true, 'OP deleted starter message')
+		} catch (err) {
+			console.error('[lockOnOpDeletesStarter] Failed to lock/archive thread')
+			console.error(err)
 		}
 	},
 }

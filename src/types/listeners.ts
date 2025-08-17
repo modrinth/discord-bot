@@ -220,7 +220,6 @@ export function createMessageHandlers(
 	const deleteList = ordered.filter((l): l is DeleteListener => l.event === 'delete')
 
 	const onCreate = async (message: Message) => {
-		console.log(message)
 		const now = Date.now()
 		const ctx: MessageContext = { client: message.client, message, now }
 		for (const l of createList) {
