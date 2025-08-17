@@ -4,10 +4,10 @@ import { FORUM_ONLY_ERROR_TEXT, OP_MARKED_SOLVED_TEXT, OP_ONLY_ERROR_TEXT } from
 import type { ChatInputCommand } from '@/types/commands'
 
 export const solvedCommand: ChatInputCommand = {
-	data: new SlashCommandBuilder().setName('solved').setDescription('Mark your thread as solved.'),
+	data: new SlashCommandBuilder().setName('solved').setDescription('Mark your thread as solved'),
 	meta: {
 		name: 'solved',
-		description: 'Mark your thread as solved.',
+		description: 'Mark your thread as solved',
 		category: 'utility',
 	},
 	async execute(interaction) {
