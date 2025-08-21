@@ -127,6 +127,7 @@ export async function deployCommands() {
 		await rest.put(Routes.applicationCommands(clientId), { body: [] })
 		console.log('Successfully deleted all application commands.')
 
+		console.log(body)
 		await rest.put(Routes.applicationCommands(clientId), { body })
 		console.log(`Registered ${body.length} application command(s).`)
 	} catch (err) {
