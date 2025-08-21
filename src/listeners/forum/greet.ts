@@ -1,9 +1,9 @@
 import { ThreadChannel } from 'discord.js'
 
-import { GREET_EMBED } from '../../data/forum'
-import { CreateListener } from '../../types'
-import { createDefaultEmbed } from '../../utils/embeds'
-import { isInCommunitySupportThread, isThreadStarterMessage } from '../../utils/threads'
+import { GREET_EMBED } from '@/data/forum'
+import { CreateListener } from '@/types'
+import { createDefaultEmbed } from '@/utils'
+import { isInCommunitySupportThread, isThreadStarterMessage } from '@/utils'
 
 export const greetCommunitySupport: CreateListener = {
 	id: 'forum:community-support:greet',
