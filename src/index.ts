@@ -6,7 +6,7 @@ import commands from '@/commands'
 import listeners from '@/listeners'
 import reactionListeners from '@/listeners/reaction'
 import { createCommandRegistry, deployCommands, tryJoinThread } from '@/utils'
-
+import { db } from './db'
 import { createMessageHandlers, createReactionHandlers } from './types/listeners'
 
 // Handle CLI flags before booting the bot
@@ -14,6 +14,8 @@ if (process.argv.includes('--deploy-commands')) {
 	await deployCommands()
 	process.exit(0)
 }
+
+await db.execute('select 1')
 
 const client = new Client({
 	intents: [
@@ -48,7 +50,9 @@ client.on(Events.ThreadCreate, async (thread) => {
 	}
 })
 
-const { onCreate, onUpdate, onDelete } = createMessageHandlers(listeners, { mode: 'all' })
+const { onCreate, onUpdate, onDelete } = createMessageHandlers(listeners, {
+	mode: 'all',
+})
 const { onReactionAdd, onReactionRemove } = createReactionHandlers(reactionListeners, {
 	mode: 'all',
 })

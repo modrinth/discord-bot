@@ -130,6 +130,8 @@ export type MessageReactListener = EventBase & {
 export type MessagePipelineOptions = {
 	/** If 'first', stop after the first listener handles the message; if 'all', run all that match. */
 	mode?: 'first' | 'all'
+	/** Optional services container passed to every listener context (e.g., { db, cache }). */
+	services?: Record<string, unknown>
 	/** Optional error hook called when a listener throws. */
 	onError?: (
 		listener: MessageListener,
@@ -221,7 +223,12 @@ export function createMessageHandlers(
 
 	const onCreate = async (message: Message) => {
 		const now = Date.now()
-		const ctx: MessageContext = { client: message.client, message, now }
+		const ctx: MessageContext = {
+			client: message.client,
+			message,
+			now,
+			services: options?.services,
+		}
 		for (const l of createList) {
 			if (!passesFilterGeneric(message, l.filter)) continue
 			if (l.match && !(await l.match(ctx))) continue
@@ -241,7 +248,13 @@ export function createMessageHandlers(
 	) => {
 		const client = (newMessage as Message).client ?? (oldMessage as Message).client
 		const now = Date.now()
-		const ctx: MessageUpdateContext = { client, oldMessage, newMessage, now }
+		const ctx: MessageUpdateContext = {
+			client,
+			oldMessage,
+			newMessage,
+			now,
+			services: options?.services,
+		}
 		for (const l of updateList) {
 			const msg = newMessage
 			if (!passesFilterGeneric(msg, l.filter)) continue
@@ -262,6 +275,7 @@ export function createMessageHandlers(
 			client: (message as Message).client,
 			message,
 			now,
+			services: options?.services,
 		}
 		for (const l of deleteList) {
 			if (!passesFilterGeneric(message, l.filter)) continue
@@ -329,6 +343,7 @@ export function createReactionHandlers(
 			reaction,
 			user,
 			now,
+			services: options?.services,
 		}
 		for (const l of list) {
 			const msg = reaction.message as Message | PartialMessage | undefined
