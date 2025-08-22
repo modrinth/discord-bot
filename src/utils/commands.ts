@@ -71,7 +71,7 @@ export function createCommandRegistry(
 				if (interaction.deferred || interaction.replied) return
 				await interaction.reply({
 					content: `Please wait ${remain}s before using /${cmd.meta.name} again.`,
-					ephemeral: true,
+					flags: 'Ephemeral',
 				})
 				return
 			}
@@ -83,9 +83,9 @@ export function createCommandRegistry(
 			if (opts.debug) console.error(`[command:${cmd.meta.name}]`, err)
 			const content = 'There was an error while executing this command.'
 			if (interaction.deferred || interaction.replied) {
-				await interaction.followUp({ content, ephemeral: true }).catch(() => {})
+				await interaction.followUp({ content, flags: 'Ephemeral' }).catch(() => {})
 			} else {
-				await interaction.reply({ content, ephemeral: true }).catch(() => {})
+				await interaction.reply({ content, flags: 'Ephemeral' }).catch(() => {})
 			}
 		}
 	}
@@ -113,6 +113,8 @@ export function createCommandRegistry(
 export async function deployCommands() {
 	const token = process.env.DISCORD_BOT_TOKEN
 	const clientId = process.env.DISCORD_CLIENT_ID
+	const guildId = process.env.GUILD_ID
+
 	if (!token || !clientId) {
 		console.error('Missing DISCORD_BOT_TOKEN or DISCORD_CLIENT_ID')
 		process.exit(1)
@@ -126,6 +128,11 @@ export async function deployCommands() {
 	try {
 		await rest.put(Routes.applicationCommands(clientId), { body: [] })
 		console.log('Successfully deleted all application commands.')
+
+		await rest
+			.put(Routes.applicationGuildCommands(clientId, guildId), { body: [] })
+			.then(() => console.log('Successfully deleted all guild commands.'))
+			.catch(console.error)
 
 		console.log(body)
 		await rest.put(Routes.applicationCommands(clientId), { body })
