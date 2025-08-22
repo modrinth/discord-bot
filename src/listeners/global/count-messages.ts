@@ -3,6 +3,9 @@ import { users } from '@/db/schema'
 import { CreateListener } from '@/types'
 import { eq, sql } from 'drizzle-orm'
 
+import { ACTIVE_ROLE_GRANTED_EMBED } from '@/data'
+import { createDefaultEmbed } from '@/utils'
+
 export const countMessages: CreateListener = {
 	id: 'global:count-messages',
 	event: 'create',
@@ -13,6 +16,7 @@ export const countMessages: CreateListener = {
 	handle: async (ctx) => {
 		if (!ctx.message.guild) return
 		if (!ctx.message.author) return
+
 		await db
 			.insert(users)
 			.values({ id: ctx.message.author.id, messagesSent: 1 })
@@ -35,9 +39,8 @@ export const countMessages: CreateListener = {
 			const guild = ctx.message.guild
 			const member = await guild.members.fetch(ctx.message.author.id)
 			await member.roles.add(process.env.ACTIVE_ROLE_ID!)
-			ctx.message.author.send(
-				`You have been given the active role in the Modrinth community. You will now be able to upload images and share links. Please use this power responsibly, abuse will lead to removal of this role.`,
-			)
+			const embed = createDefaultEmbed(ACTIVE_ROLE_GRANTED_EMBED)
+			await ctx.message.author.send({ embeds: [embed] })
 		}
 	},
 }
