@@ -1,6 +1,6 @@
 import { CreateListener } from '@/types'
 import { BLOCKLISTED_FILE_EXTENSIONS } from '@/data/misc'
-import blocklistedFileExtensions from '@/data/misc/blocklisted-file-extensions'
+import { toHumanFileSize } from '@/utils'
 
 function getFileExtension(filename: string): string | null {
 	const parts = filename.split('.')
@@ -21,10 +21,19 @@ export const scanForBlocklistedFiles: CreateListener = {
 
 		ctx.message.attachments.forEach((attachment) => {
 			if (attachment.name.length === 0) return
-			if (blocklistedFileExtensions.includes(<string>getFileExtension(attachment.name))) {
+			if (BLOCKLISTED_FILE_EXTENSIONS.includes(<string>getFileExtension(attachment.name))) {
 				ctx.message.delete()
 
 				// TODO: Alert mods.
+				if (ctx.message.channel.isSendable()) {
+					ctx.message.channel.send(
+						[
+							`⚠️ User ${ctx.message.author} (\`${ctx.message.author.username}\`, ID: ${ctx.message.author.id}) attempted to sent a blacklisted file type in ${ctx.message.channel}.`,
+							`> Filename: \`${attachment.name}\``,
+							`> Size: ${toHumanFileSize(attachment.size)}`,
+						].join('\n'),
+					)
+				}
 			}
 		})
 	},

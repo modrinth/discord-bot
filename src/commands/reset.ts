@@ -25,7 +25,7 @@ export const resetCommand: ChatInputCommand = {
 		const member = await interaction.guild.members.fetch(id)
 
 		await db.update(users).set({ messagesSent: 0 }).where(eq(users.id, id))
-		await member.roles.remove([process.env.ACTIVE_ROLE_ID!])
+		await member.roles.remove(process.env.ACTIVE_ROLE_ID!)
 
 		await interaction.reply({
 			content: `User's (\`${member.user.username}\`, ID: ${member.user.id}) active role and message counter has been reset.`,
