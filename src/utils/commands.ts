@@ -115,8 +115,8 @@ export async function deployCommands() {
 	const clientId = process.env.DISCORD_CLIENT_ID
 	const guildId = process.env.GUILD_ID
 
-	if (!token || !clientId) {
-		console.error('Missing DISCORD_BOT_TOKEN or DISCORD_CLIENT_ID')
+	if (!token || !clientId || !guildId) {
+		console.error('Missing DISCORD_BOT_TOKEN, DISCORD_CLIENT_ID or GUILD_ID')
 		process.exit(1)
 	}
 
