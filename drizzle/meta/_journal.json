@@ -8,6 +8,13 @@
       "when": 1755788003578,
       "tag": "0000_lethal_pride",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1756241903584,
+      "tag": "0001_complex_vengeance",
+      "breakpoints": true
     }
   ]
 }

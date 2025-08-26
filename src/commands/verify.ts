@@ -1,4 +1,5 @@
 import type { ChatInputCommand } from '@/types/commands'
+import { createVerificationState } from '@/web'
 import { SlashCommandBuilder } from 'discord.js'
 
 export const verifyCommand: ChatInputCommand = {
@@ -16,10 +17,16 @@ export const verifyCommand: ChatInputCommand = {
 		guildOnly: true,
 	},
 	execute: async (interaction) => {
-		// For now, do nothing besides acknowledge.
 		const sub = interaction.options.getSubcommand()
+		if (sub !== 'crowdin') {
+			await interaction.reply({ content: 'Only Crowdin is supported right now.', ephemeral: true })
+			return
+		}
+		const token = await createVerificationState(interaction.user.id)
+		const base = process.env.PUBLIC_BASE_URL || 'http://localhost:3000'
+		const url = `${base}/crowdin/verify?token=${encodeURIComponent(token)}`
 		await interaction.reply({
-			content: `Verification flow for '${sub}' will be available soon.`,
+			content: `To link your Crowdin account, open: ${url}\nThis link expires in 15 minutes.`,
 			ephemeral: true,
 		})
 	},

@@ -8,6 +8,7 @@ import reactionListeners from '@/listeners/reaction'
 import { createCommandRegistry, deployCommands, tryJoinThread } from '@/utils'
 import { db } from './db'
 import { createMessageHandlers, createReactionHandlers } from './types/listeners'
+import { startWebServer } from './web'
 
 // Handle CLI flags before booting the bot
 if (process.argv.includes('--deploy-commands')) {
@@ -72,3 +73,5 @@ client.on(Events.MessageReactionAdd, onReactionAdd)
 client.on(Events.MessageReactionRemove, onReactionRemove)
 
 client.login(process.env.DISCORD_BOT_TOKEN)
+
+startWebServer(client)
