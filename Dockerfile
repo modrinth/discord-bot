@@ -11,8 +11,6 @@ FROM node:22-slim AS rt
 
 WORKDIR /app
 
-RUN npm install -g pnpm
-
 COPY --from=build /app/package.json /app/pnpm-lock.yaml ./
 COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/dist ./dist
