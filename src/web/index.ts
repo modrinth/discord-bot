@@ -1,11 +1,14 @@
+import { randomBytes } from 'node:crypto'
+
+import type { Client } from 'discord.js'
+import { and, eq, gt, sql } from 'drizzle-orm'
+import express, { NextFunction, Request, Response } from 'express'
+
 import { CrowdinOauthHelper, ModrinthApi, ModrinthOauthHelper } from '@/api/'
 import { db } from '@/db'
 import { crowdinAccounts, oauthVerifications, users } from '@/db/schema'
 import { createDefaultEmbed } from '@/utils/embeds'
-import type { Client } from 'discord.js'
-import { and, eq, gt, sql } from 'drizzle-orm'
-import express, { NextFunction, Request, Response } from 'express'
-import { randomBytes } from 'node:crypto'
+
 import htmlClosePage from './close.html?raw'
 
 const PORT = process.env.PORT ? Number(process.env.PORT) : 3000
@@ -144,7 +147,9 @@ export function startWebServer(client: Client) {
 							},
 						)
 					await member.send({ embeds: [embed] })
-				} catch {}
+				} catch {
+					// ignore
+				}
 			}
 
 			await db.delete(oauthVerifications).where(eq(oauthVerifications.token, state))
@@ -353,7 +358,9 @@ export function startWebServer(client: Client) {
 							.addFields(activityField)
 						await member.send({ embeds: [embed] })
 					}
-				} catch {}
+				} catch {
+					// ignore
+				}
 			}
 
 			await db.delete(oauthVerifications).where(eq(oauthVerifications.token, state))

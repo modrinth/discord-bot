@@ -1,6 +1,7 @@
+import { ChatInputCommandInteraction, EmbedBuilder, SlashCommandBuilder } from 'discord.js'
+
 import { ModrinthApi } from '@/api/modrinth'
 import { ChatInputCommand } from '@/types'
-import { ChatInputCommandInteraction, EmbedBuilder, SlashCommandBuilder } from 'discord.js'
 
 export const projectCommand: ChatInputCommand = {
 	data: new SlashCommandBuilder()

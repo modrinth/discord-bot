@@ -1,9 +1,9 @@
-import { db } from '@/db'
-import { users } from '@/db/schema'
-import { CreateListener } from '@/types'
 import { eq, sql } from 'drizzle-orm'
 
 import { ACTIVE_ROLE_GRANTED_EMBED } from '@/data'
+import { db } from '@/db'
+import { users } from '@/db/schema'
+import { CreateListener } from '@/types'
 import { createDefaultEmbed } from '@/utils'
 
 export const countMessages: CreateListener = {
@@ -12,7 +12,7 @@ export const countMessages: CreateListener = {
 	description: 'Counts messages',
 	priority: 0,
 	filter: { allowBots: false, allowDMs: false },
-	match: async (ctx) => true,
+	match: async () => true,
 	handle: async (ctx) => {
 		if (!ctx.message.guild) return
 		if (!ctx.message.author) return

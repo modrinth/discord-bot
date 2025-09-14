@@ -1,5 +1,5 @@
-import { CreateListener } from '@/types'
 import { BLOCKLISTED_FILE_EXTENSIONS } from '@/data/misc'
+import { CreateListener } from '@/types'
 import { toHumanFileSize } from '@/utils'
 
 function getFileExtension(filename: string): string | null {
@@ -13,7 +13,7 @@ export const scanForBlocklistedFiles: CreateListener = {
 	description: 'Scans message attachments for blocklisted file extentions',
 	priority: 0,
 	filter: { allowBots: false, allowDMs: false },
-	match: async (ctx) => true,
+	match: async () => true,
 	handle: async (ctx) => {
 		if (!ctx.message.guild) return
 		if (!ctx.message.author) return

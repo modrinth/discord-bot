@@ -1,6 +1,7 @@
+import { SlashCommandBuilder } from 'discord.js'
+
 import type { ChatInputCommand } from '@/types/commands'
 import { createVerificationState } from '@/web'
-import { SlashCommandBuilder } from 'discord.js'
 
 export const verifyCommand: ChatInputCommand = {
 	data: new SlashCommandBuilder()

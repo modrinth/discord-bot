@@ -1,9 +1,11 @@
+import * as process from 'node:process'
+
+import { ChatInputCommandInteraction, SlashCommandBuilder } from 'discord.js'
+import { eq } from 'drizzle-orm'
+
 import { db } from '@/db'
 import { users } from '@/db/schema'
 import { ChatInputCommand } from '@/types'
-import { ChatInputCommandInteraction, SlashCommandBuilder } from 'discord.js'
-import { eq } from 'drizzle-orm'
-import * as process from 'node:process'
 
 export const resetCommand: ChatInputCommand = {
 	data: new SlashCommandBuilder()

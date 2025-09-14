@@ -100,7 +100,7 @@ export class CrowdinOauthHelper {
 				data: { id: number; role?: string; roles?: Array<{ name?: string }> }
 			}>(`/projects/${projectId}/members/${memberId}`, serviceToken)
 			return res?.data ?? null
-		} catch (e) {
+		} catch {
 			return null
 		}
 	}
