@@ -90,6 +90,35 @@ export class CrowdinOauthHelper {
 		return res.data
 	}
 
+	async getProjectMember(
+		projectId: string | number,
+		memberId: string | number,
+		serviceToken: string,
+	): Promise<{ id: number; role?: string; roles?: Array<{ name?: string }> } | null> {
+		try {
+			const res = await this.crowdinGet<{
+				data: { id: number; role?: string; roles?: Array<{ name?: string }> }
+			}>(`/projects/${projectId}/members/${memberId}`, serviceToken)
+			return res?.data ?? null
+		} catch (e) {
+			return null
+		}
+	}
+
+	async hasProofreaderRole(
+		projectId: string | number,
+		userId: string | number,
+		serviceToken: string,
+	): Promise<boolean> {
+		const member = await this.getProjectMember(projectId, userId, serviceToken)
+		if (!member) return false
+		const primary = (member.role ?? '').toLowerCase()
+		if (primary === 'proofreader') return true
+		// language_coordinator also implies proofreading responsibilities in many setups
+		const names = (member.roles ?? []).map((r) => (r.name ?? '').toLowerCase())
+		return names.includes('proofreader') || names.includes('language_coordinator')
+	}
+
 	async generateTopMembersReport(projectId: string | number, accessToken: string): Promise<string> {
 		const create = await this.crowdinPost<ReportCreate>(
 			`/projects/${projectId}/reports`,

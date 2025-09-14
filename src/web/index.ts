@@ -13,6 +13,7 @@ const GUILD_ID = process.env.GUILD_ID!
 const TRANSLATOR_ROLE_ID = process.env.TRANSLATOR_ROLE_ID || process.env.ACTIVE_ROLE_ID!
 const CROWDIN_SCOPES = 'project'
 const VERIFIED_CREATOR_ROLE_ID = process.env.VERIFIED_CREATOR_ROLE_ID || ''
+const PROOFREADER_ROLE_ID = process.env.PROOFREADER_ROLE_ID || ''
 
 const inflightStates = new Map<string, number>()
 
@@ -36,7 +37,6 @@ export function startWebServer(client: Client) {
 
 	app.get('/healthz', (_req: Request, res: Response) => res.send('ok'))
 
-	// ---------- Modrinth Verified Creator flow ----------
 	app.get('/modrinth/verify', async (req: Request, res: Response) => {
 		const token = (req.query.token as string) || ''
 		if (!token) return res.status(400).send('Missing token')
@@ -184,6 +184,7 @@ export function startWebServer(client: Client) {
 
 			const projectId = process.env.CROWDIN_PROJECT_ID
 			let hasContribution = false
+			let isProofreader = false
 			if (projectId) {
 				try {
 					const serviceToken = process.env.CROWDIN_TOKEN!
@@ -193,9 +194,12 @@ export function startWebServer(client: Client) {
 						authUser.id,
 						serviceToken,
 					)
+
+					isProofreader = await crowdin.hasProofreaderRole(projectId, authUser.id, serviceToken)
 				} catch (e) {
 					console.error('[Crowdin][Verify][ERROR]', e)
 					hasContribution = false
+					isProofreader = false
 				}
 			}
 
@@ -205,20 +209,35 @@ export function startWebServer(client: Client) {
 			const guild = await client.guilds.fetch(GUILD_ID)
 			const member = await guild.members.fetch(stateRow.discordUserId).catch(() => null)
 			if (member) {
+				const granted: string[] = []
 				if (hasContribution) {
 					await member.roles
 						.add(TRANSLATOR_ROLE_ID)
 						.then(() => {})
 						.catch((err) => {
-							console.error('[Discord][ERROR] Failed to grant role', err)
+							console.error('[Discord][ERROR] Failed to grant translator role', err)
 						})
+					granted.push('Translator')
+				}
+				if (isProofreader && PROOFREADER_ROLE_ID) {
+					await member.roles
+						.add(PROOFREADER_ROLE_ID)
+						.then(() => {})
+						.catch((err) => {
+							console.error('[Discord][ERROR] Failed to grant proofreader role', err)
+						})
+					granted.push('Proofreader')
 				}
 				try {
-					await member.send(
-						hasContribution
-							? 'Your Crowdin account is linked and you have contributions. The role has been granted.'
-							: 'Your Crowdin account is linked, but we did not detect contributions yet. Contribute and run /verify crowdin again.',
-					)
+					if (granted.length > 0) {
+						await member.send(
+							`Your Crowdin account is linked. Granted roles: ${granted.join(', ')}.`,
+						)
+					} else {
+						await member.send(
+							'Your Crowdin account is linked, but we did not detect contributions yet and you do not appear to be a proofreader. Contribute and run /verify crowdin again.',
+						)
+					}
 				} catch {}
 			}
 
