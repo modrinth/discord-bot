@@ -1,6 +1,7 @@
 import { CrowdinOauthHelper, ModrinthApi, ModrinthOauthHelper } from '@/api/'
 import { db } from '@/db'
 import { crowdinAccounts, oauthVerifications, users } from '@/db/schema'
+import { createDefaultEmbed } from '@/utils/embeds'
 import type { Client } from 'discord.js'
 import { and, eq, gt, sql } from 'drizzle-orm'
 import express, { NextFunction, Request, Response } from 'express'
@@ -72,8 +73,9 @@ export function startWebServer(client: Client) {
 		if (!code || !state) return res.status(400).send('Missing code/state')
 		if (!inflightStates.has(state)) inflightStates.set(state, 0)
 		const now = Date.now()
-		const last = inflightStates.get(state)!
-		if (now - last < 60_000) return res.status(429).send('Request already in progress')
+		const last = inflightStates.get(state) ?? 0
+		if (last !== 0 && now - last < 60_000)
+			return res.status(429).send('Request already in progress')
 		inflightStates.set(state, now)
 		const [stateRow] = await db
 			.select()
@@ -111,17 +113,37 @@ export function startWebServer(client: Client) {
 			const guild = await client.guilds.fetch(GUILD_ID)
 			const member = await guild.members.fetch(stateRow.discordUserId).catch(() => null)
 			if (member) {
+				let creatorGranted = false
 				if (totalWeighted >= threshold && VERIFIED_CREATOR_ROLE_ID) {
-					await member.roles.add(VERIFIED_CREATOR_ROLE_ID).catch((err) => {
+					try {
+						await member.roles.add(VERIFIED_CREATOR_ROLE_ID)
+						creatorGranted = true
+					} catch (err) {
 						console.error('[Discord][ERROR] Failed to grant creator role', err)
-					})
+					}
 				}
 				try {
-					await member.send(
-						totalWeighted >= threshold
-							? 'Your Modrinth account is linked and you qualify for the creator role. The role has been granted.'
-							: `Your Modrinth account is linked, but you do not meet the current threshold yet. Weighted downloads: ${Math.floor(totalWeighted)}.`,
-					)
+					const fmt = (n: number) => Math.floor(n).toLocaleString()
+					const embed = createDefaultEmbed()
+						.setTitle('Modrinth account linked')
+						.setDescription(
+							creatorGranted
+								? 'You meet the requirements for the Creator role.'
+								: 'You do not meet the current threshold yet.',
+						)
+						.addFields(
+							{ name: 'Total weighted downloads', value: fmt(totalWeighted), inline: true },
+							{ name: 'Threshold', value: fmt(threshold), inline: true },
+							{
+								name: 'How we compute this',
+								value:
+									"Each project's downloads are multiplied by a weight and summed:\n" +
+									'- mods, resourcepacks, datapacks: ×1\n' +
+									'- plugins, shaders: ×3\n' +
+									'- modpacks: ×0.2',
+							},
+						)
+					await member.send({ embeds: [embed] })
 				} catch {}
 			}
 
@@ -157,8 +179,9 @@ export function startWebServer(client: Client) {
 
 		if (!inflightStates.has(state)) inflightStates.set(state, 0)
 		const now = Date.now()
-		const last = inflightStates.get(state)!
-		if (now - last < 60_000) return res.status(429).send('Request already in progress')
+		const last = inflightStates.get(state) ?? 0
+		if (last !== 0 && now - last < 60_000)
+			return res.status(429).send('Request already in progress')
 		inflightStates.set(state, now)
 
 		const [stateRow] = await db
@@ -202,58 +225,133 @@ export function startWebServer(client: Client) {
 			const projectId = process.env.CROWDIN_PROJECT_ID
 			let hasContribution = false
 			let isProofreader = false
+			let translated = 0
+			let approved = 0
 			if (projectId) {
-				try {
-					const serviceToken = process.env.CROWDIN_TOKEN!
-					if (!serviceToken) throw new Error('CROWDIN_TOKEN is not set')
-					hasContribution = await crowdin.hasContributionViaReport(
-						projectId,
-						authUser.id,
-						serviceToken,
-					)
-
-					isProofreader = await crowdin.hasProofreaderRole(projectId, authUser.id, serviceToken)
-				} catch (e) {
-					console.error('[Crowdin][Verify][ERROR]', e)
-					hasContribution = false
-					isProofreader = false
+				const serviceToken = process.env.CROWDIN_TOKEN!
+				if (!serviceToken) {
+					console.error('[Crowdin][Verify][ERROR] CROWDIN_TOKEN is not set')
+				} else {
+					try {
+						const activity = await crowdin.getMemberActivity(projectId, authUser.id, serviceToken)
+						translated = activity.translated
+						approved = activity.approved
+						hasContribution = translated > 0 || approved > 0
+						isProofreader = approved > 0
+					} catch (e) {
+						console.error('[Crowdin][Verify][ERROR] getMemberActivity failed', e)
+					}
 				}
 			}
+			console.debug('[Crowdin][Verify]', {
+				userId: String(authUser.id),
+				translated,
+				approved,
+				hasContribution,
+				isProofreader,
+			})
 
 			if (!client.isReady()) {
 				await new Promise<void>((resolve) => client.once('ready', () => resolve()))
 			}
 			const guild = await client.guilds.fetch(GUILD_ID)
 			const member = await guild.members.fetch(stateRow.discordUserId).catch(() => null)
+			if (!member) {
+				console.warn(
+					`[Discord] Member ${stateRow.discordUserId} not found in guild ${GUILD_ID}; cannot grant roles`,
+				)
+			}
 			if (member) {
-				const granted: string[] = []
+				const hasTranslatorRole = member.roles.cache.has(TRANSLATOR_ROLE_ID)
+				const hasProofreaderRole = PROOFREADER_ROLE_ID
+					? member.roles.cache.has(PROOFREADER_ROLE_ID)
+					: false
+
+				const newlyGranted: string[] = []
+				const alreadyHad: string[] = []
+
+				// Ensure translator role if the user has contributions
 				if (hasContribution) {
-					await member.roles
-						.add(TRANSLATOR_ROLE_ID)
-						.then(() => {})
-						.catch((err) => {
+					if (!hasTranslatorRole) {
+						try {
+							await member.roles.add(TRANSLATOR_ROLE_ID)
+							newlyGranted.push('Translator')
+						} catch (err) {
 							console.error('[Discord][ERROR] Failed to grant translator role', err)
-						})
-					granted.push('Translator')
-				}
-				if (isProofreader && PROOFREADER_ROLE_ID) {
-					await member.roles
-						.add(PROOFREADER_ROLE_ID)
-						.then(() => {})
-						.catch((err) => {
-							console.error('[Discord][ERROR] Failed to grant proofreader role', err)
-						})
-					granted.push('Proofreader')
-				}
-				try {
-					if (granted.length > 0) {
-						await member.send(
-							`Your Crowdin account is linked. Granted roles: ${granted.join(', ')}.`,
-						)
+						}
 					} else {
-						await member.send(
-							'Your Crowdin account is linked, but we did not detect contributions yet and you do not appear to be a proofreader. Contribute and run /verify crowdin again.',
-						)
+						alreadyHad.push('Translator')
+					}
+				} else if (hasTranslatorRole) {
+					// User already has Translator from before
+					alreadyHad.push('Translator')
+				}
+
+				// Ensure proofreader role if detected on Crowdin
+				if (isProofreader) {
+					if (PROOFREADER_ROLE_ID) {
+						if (!hasProofreaderRole) {
+							try {
+								await member.roles.add(PROOFREADER_ROLE_ID)
+								newlyGranted.push('Proofreader')
+							} catch (err) {
+								console.error('[Discord][ERROR] Failed to grant proofreader role', err)
+							}
+						} else {
+							alreadyHad.push('Proofreader')
+						}
+					} else {
+						// Detected proofreader, but role id is not configured
+						if (!PROOFREADER_ROLE_ID) {
+							console.warn(
+								'[Discord] PROOFREADER_ROLE_ID is not configured; cannot grant proofreader role',
+							)
+						}
+					}
+				}
+
+				try {
+					const base = createDefaultEmbed().setTitle('Crowdin account linked')
+					const activityField = {
+						name: 'Your activity',
+						value: `Translated: ${translated}\nApproved: ${approved}`,
+						inline: false,
+					}
+					if (newlyGranted.length > 0) {
+						const embed = base
+							.setDescription('Thanks for contributing! We granted you new role(s).')
+							.addFields(
+								{ name: 'Granted roles', value: newlyGranted.join(', '), inline: true },
+								...(alreadyHad.length > 0
+									? [{ name: 'Already had', value: alreadyHad.join(', '), inline: true }]
+									: []),
+								activityField,
+							)
+						await member.send({ embeds: [embed] })
+					} else if (alreadyHad.length > 0) {
+						const embed = base
+							.setDescription(
+								'Your Crowdin account is linked. You already have the following role(s).',
+							)
+							.addFields(
+								{ name: 'Roles', value: alreadyHad.join(', '), inline: true },
+								activityField,
+							)
+						await member.send({ embeds: [embed] })
+					} else if (isProofreader && !PROOFREADER_ROLE_ID) {
+						const embed = base
+							.setDescription(
+								"We detected you're a proofreader, but the server hasn't configured the Proofreader role yet. Please contact the staff.",
+							)
+							.addFields(activityField)
+						await member.send({ embeds: [embed] })
+					} else {
+						const embed = base
+							.setDescription(
+								'We did not detect contributions yet. Try contributing (translating or approving) and then run /verify crowdin again.',
+							)
+							.addFields(activityField)
+						await member.send({ embeds: [embed] })
 					}
 				} catch {}
 			}

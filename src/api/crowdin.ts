@@ -176,6 +176,27 @@ export class CrowdinOauthHelper {
 		}
 	}
 
+	/**
+	 * Returns the translated and approved counts for a specific user in a project
+	 * using the cached "top-members" report.
+	 */
+	async getMemberActivity(
+		projectId: string | number,
+		userId: number | string,
+		accessToken: string,
+	): Promise<{ translated: number; approved: number }> {
+		const rows = await this.getTopMembersRows(projectId, accessToken)
+		const found = rows.find((row: any) => {
+			const id = row?.user?.id ?? row?.userId ?? row?.id
+			if (id == null) return false
+			return String(id) === String(userId)
+		})
+		if (!found) return { translated: 0, approved: 0 }
+		const translated = Number(found?.translated ?? 0)
+		const approved = Number(found?.approved ?? 0)
+		return { translated, approved }
+	}
+
 	async hasContributionViaReport(
 		projectId: string | number,
 		userId: number,
