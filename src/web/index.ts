@@ -242,9 +242,18 @@ export function startWebServer(client: Client) {
 						translated = activity.translated
 						approved = activity.approved
 						hasContribution = translated > 0 || approved > 0
-						isProofreader = approved > 0
+
+						// Check proofreader role separately
+						try {
+							isProofreader = await crowdin.hasProofreaderRole(projectId, authUser.id, serviceToken)
+						} catch (err) {
+							console.error('[Crowdin][Verify][ERROR] hasProofreaderRole failed', err)
+							// Fallback: if they have approved translations, they're likely a proofreader
+							isProofreader = approved > 0
+						}
 					} catch (e) {
 						console.error('[Crowdin][Verify][ERROR] getMemberActivity failed', e)
+						// Keep defaults: translated = 0, approved = 0, hasContribution = false
 					}
 				}
 			}

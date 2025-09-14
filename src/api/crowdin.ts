@@ -94,10 +94,22 @@ export class CrowdinOauthHelper {
 		projectId: string | number,
 		memberId: string | number,
 		serviceToken: string,
-	): Promise<{ id: number; role?: string; roles?: Array<{ name?: string }> } | null> {
+	): Promise<{
+		id: number
+		username?: string
+		fullName?: string | null
+		role?: string
+		roles?: Array<{ name?: string }>
+	} | null> {
 		try {
 			const res = await this.crowdinGet<{
-				data: { id: number; role?: string; roles?: Array<{ name?: string }> }
+				data: {
+					id: number
+					username?: string
+					fullName?: string | null
+					role?: string
+					roles?: Array<{ name?: string }>
+				}
 			}>(`/projects/${projectId}/members/${memberId}`, serviceToken)
 			return res?.data ?? null
 		} catch {
@@ -110,13 +122,23 @@ export class CrowdinOauthHelper {
 		userId: string | number,
 		serviceToken: string,
 	): Promise<boolean> {
-		const member = await this.getProjectMember(projectId, userId, serviceToken)
-		if (!member) return false
-		const primary = (member.role ?? '').toLowerCase()
-		if (primary === 'proofreader') return true
-		// language_coordinator also implies proofreading responsibilities in many setups
-		const names = (member.roles ?? []).map((r) => (r.name ?? '').toLowerCase())
-		return names.includes('proofreader') || names.includes('language_coordinator')
+		try {
+			const member = await this.getProjectMember(projectId, userId, serviceToken)
+			if (!member) return false
+
+			// Check primary role
+			const primaryRole = (member.role ?? '').toLowerCase()
+			if (primaryRole === 'proofreader' || primaryRole === 'owner' || primaryRole === 'manager') {
+				return true
+			}
+
+			// Check roles array for proofreader or language_coordinator
+			const roleNames = (member.roles ?? []).map((r) => (r.name ?? '').toLowerCase())
+			return roleNames.includes('proofreader') || roleNames.includes('language_coordinator')
+		} catch (error) {
+			console.error('[Crowdin] Error checking proofreader role:', error)
+			return false
+		}
 	}
 
 	async generateTopMembersReport(projectId: string | number, accessToken: string): Promise<string> {
@@ -164,7 +186,7 @@ export class CrowdinOauthHelper {
 			if (!res.ok) throw new Error(`Crowdin report download failed: ${res.status}`)
 			const data = await res.json().catch(() => null)
 			const rows: any[] = Array.isArray(data?.data) ? data.data : []
-			this.reportCache.set(key, { expiresAt: now + 30 * 60 * 1000, rows })
+			this.reportCache.set(key, { expiresAt: now + 1 * 60 * 1000, rows })
 			return rows
 		})()
 		this.reportInFlight.set(key, promise)
@@ -185,16 +207,49 @@ export class CrowdinOauthHelper {
 		userId: number | string,
 		accessToken: string,
 	): Promise<{ translated: number; approved: number }> {
-		const rows = await this.getTopMembersRows(projectId, accessToken)
-		const found = rows.find((row: any) => {
-			const id = row?.user?.id ?? row?.userId ?? row?.id
-			if (id == null) return false
-			return String(id) === String(userId)
-		})
-		if (!found) return { translated: 0, approved: 0 }
-		const translated = Number(found?.translated ?? 0)
-		const approved = Number(found?.approved ?? 0)
-		return { translated, approved }
+		try {
+			const rows = await this.getTopMembersRows(projectId, accessToken)
+
+			// First try to find by user ID
+			let found = rows.find((row: any) => {
+				// The user data is nested under "user" property in the report
+				const userObj = row?.user
+				if (!userObj) return false
+				const id = userObj.id
+				if (id == null) return false
+				return String(id) === String(userId)
+			})
+
+			// If not found by ID, try to get member info and match by username
+			if (!found) {
+				try {
+					const member = await this.getProjectMember(projectId, userId, accessToken)
+					if (member && member.username) {
+						const targetUsername = member.username.toLowerCase()
+						found = rows.find((row: any) => {
+							const userObj = row?.user
+							if (!userObj) return false
+							const rowUsername = (userObj.username ?? '').toLowerCase()
+							return rowUsername === targetUsername
+						})
+					}
+				} catch (err) {
+					console.error('[Crowdin] Error fetching member info for fallback:', err)
+				}
+			}
+
+			if (!found) {
+				console.debug(`[Crowdin] No activity found for user ${userId} in project ${projectId}`)
+				return { translated: 0, approved: 0 }
+			}
+
+			const translated = Number(found?.translated ?? 0)
+			const approved = Number(found?.approved ?? 0)
+			return { translated, approved }
+		} catch (error) {
+			console.error('[Crowdin] Error getting member activity:', error)
+			return { translated: 0, approved: 0 }
+		}
 	}
 
 	async hasContributionViaReport(
@@ -202,16 +257,16 @@ export class CrowdinOauthHelper {
 		userId: number,
 		accessToken: string,
 	): Promise<boolean> {
-		const rows = await this.getTopMembersRows(projectId, accessToken)
-		const found = rows.find((row: any) => {
-			const id = row?.user?.id ?? row?.userId ?? row?.id
-			if (id == null) return false
-			return String(id) === String(userId)
-		})
-		if (!found) return false
-		const translated = found?.translated ?? 0
-		const approved = found?.approved ?? 0
-		console.log(`User ${userId} has ${translated} translated and ${approved} approved strings`)
-		return Number(translated) > 0 || Number(approved) > 0
+		try {
+			const activity = await this.getMemberActivity(projectId, userId, accessToken)
+			const hasContribution = activity.translated > 0 || activity.approved > 0
+			console.log(
+				`[Crowdin] User ${userId} has ${activity.translated} translated and ${activity.approved} approved strings`,
+			)
+			return hasContribution
+		} catch (error) {
+			console.error('[Crowdin] Error checking contribution:', error)
+			return false
+		}
 	}
 }
