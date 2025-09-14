@@ -11,10 +11,7 @@ FROM node:22-slim AS rt
 
 WORKDIR /app
 
-COPY --from=build /app/package.json /app/pnpm-lock.yaml ./
-COPY --from=build /app/node_modules ./node_modules
-COPY --from=build /app/dist ./dist
-COPY --from=build /app/drizzle.config.ts ./drizzle.config.ts
+COPY --from=build /app .
 
 COPY docker-entrypoint.sh docker-entrypoint.sh
 RUN chmod +x docker-entrypoint.sh
