@@ -7,7 +7,7 @@ RUN pnpm install --frozen-lockfile
 COPY . .
 RUN pnpm build
 
-FROM node:20-slim AS rt
+FROM node:22-slim AS rt
 
 WORKDIR /app
 
