@@ -2,21 +2,7 @@
 
 ## Environment variables
 
-Required:
-
-- `DISCORD_BOT_TOKEN`: Bot token for login.
-- `COMMUNITY_SUPPORT_FORUM_ID`: Channel ID of the community-support forum.
-- `COMMUNITY_SUPPORT_FORUM_SOLVED_TAG_ID`: Tag ID of the solved tag for community-support forum.
-
-Optional embed styling (used by utils/embeds.ts):
-
-- `EMBED_COLOR`: Hex (`#1BD96A`), `0x`-prefixed, decimal, or a named color.
-- `EMBED_AUTHOR_NAME`: Default author name for embeds.
-- `EMBED_AUTHOR_ICON_URL`: Default author icon URL.
-- `EMBED_FOOTER_TEXT`: Default footer text.
-- `EMBED_FOOTER_ICON_URL`: Default footer icon URL.
-- `EMBED_THUMBNAIL_URL`: Default thumbnail URL.
-- `EMBED_TIMESTAMP`: `false` (default) or `true` to include a timestamp.
+See .env.example
 
 ## Development
 
