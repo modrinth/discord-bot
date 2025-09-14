@@ -21,10 +21,15 @@ export const verifyCommand: ChatInputCommand = {
 		const sub = interaction.options.getSubcommand()
 		const base = process.env.PUBLIC_BASE_URL || 'http://localhost:3000'
 		if (sub === 'crowdin') {
-			const token = await createVerificationState(interaction.user.id)
-			const url = `${base}/crowdin/verify?token=${encodeURIComponent(token)}`
+			// const token = await createVerificationState(interaction.user.id)
+			// const url = `${base}/crowdin/verify?token=${encodeURIComponent(token)}`
+			// await interaction.reply({
+			// 	content: `To link your Crowdin account, open: ${url}\nThis link expires in 15 minutes.`,
+			// 	ephemeral: true,
+			// })
+			// return
 			await interaction.reply({
-				content: `To link your Crowdin account, open: ${url}\nThis link expires in 15 minutes.`,
+				content: `Crowdin verification is currently disabled. We'll re-enable it once it's working again!`,
 				ephemeral: true,
 			})
 			return
