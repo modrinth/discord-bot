@@ -7,7 +7,7 @@ const data: EmbedData = {
 		'You are now permitted to upload images and share links in our community.',
 		'Please use this privilege responsibly, abuse will result in removal of this role.',
 		'',
-		'– Modrinth Moderation Team',
+		'– Modrinth Discord Moderation Team',
 	].join('\n'),
 }
 

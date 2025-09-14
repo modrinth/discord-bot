@@ -11,6 +11,8 @@ import { db } from './db'
 import { createMessageHandlers, createReactionHandlers } from './types/listeners'
 import { startWebServer } from './web'
 
+const DEBUG_COMMAND_IDS = process.argv.includes('--debug-command-ids')
+
 // Handle CLI flags before booting the bot
 if (process.argv.includes('--deploy-commands')) {
 	await deployCommands()
@@ -31,6 +33,38 @@ const client = new Client({
 
 client.once(Events.ClientReady, async (readyClient) => {
 	console.log(`Bot is ready, logged in as ${readyClient.user.tag}`)
+
+	// Optionally list all registered application commands and their IDs
+	if (DEBUG_COMMAND_IDS) {
+		try {
+			// Global application commands
+			const global = await readyClient.application!.commands.fetch()
+			console.log(`[Debug][Commands] Global commands: ${global.size}`)
+			for (const [, cmd] of global) {
+				console.log(` - /${cmd.name} (${cmd.id})`)
+			}
+
+			// Guild-scoped commands per guild
+			for (const [, guild] of readyClient.guilds.cache) {
+				try {
+					const guildCmds = await guild.commands.fetch()
+					console.log(
+						`[Debug][Commands] Guild ${guild.name} (${guild.id}) commands: ${guildCmds.size}`,
+					)
+					for (const [, cmd] of guildCmds) {
+						console.log(`   - /${cmd.name} (${cmd.id})`)
+					}
+				} catch (err) {
+					console.warn(
+						`[Debug][Commands] Failed to fetch guild commands for ${guild.name} (${guild.id})`,
+						err,
+					)
+				}
+			}
+		} catch (err) {
+			console.warn('[Debug][Commands] Failed to fetch application commands', err)
+		}
+	}
 	for (const [, guild] of client.guilds.cache) {
 		try {
 			const active = await guild.channels.fetchActiveThreads()
