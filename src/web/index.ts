@@ -1,3 +1,4 @@
+import { CrowdinOauthHelper } from '@/api/'
 import { db } from '@/db'
 import { crowdinAccounts, oauthVerifications, users } from '@/db/schema'
 import type { Client } from 'discord.js'
@@ -5,7 +6,6 @@ import { and, eq, gt } from 'drizzle-orm'
 import express, { Request, Response } from 'express'
 import { randomBytes } from 'node:crypto'
 import htmlClosePage from './close.html?raw'
-import { CrowdinOauthHelper } from './crowdin-oauth-helper'
 
 const PORT = process.env.PORT ? Number(process.env.PORT) : 3000
 const BASE_URL = process.env.PUBLIC_BASE_URL || 'http://localhost:3000'

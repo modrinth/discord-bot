@@ -159,8 +159,9 @@ export class CrowdinOauthHelper {
 			return String(id) === String(userId)
 		})
 		if (!found) return false
-		const translated = found?.translated?.strings ?? found?.translations ?? 0
-		const approved = found?.approved?.strings ?? found?.approvals ?? 0
+		const translated = found?.translated ?? 0
+		const approved = found?.approved ?? 0
+		console.log(`User ${userId} has ${translated} translated and ${approved} approved strings`)
 		return Number(translated) > 0 || Number(approved) > 0
 	}
 }
