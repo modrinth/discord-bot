@@ -18,17 +18,25 @@ export const verifyCommand: ChatInputCommand = {
 	},
 	execute: async (interaction) => {
 		const sub = interaction.options.getSubcommand()
-		if (sub !== 'crowdin') {
-			await interaction.reply({ content: 'Only Crowdin is supported right now.', ephemeral: true })
+		const base = process.env.PUBLIC_BASE_URL || 'http://localhost:3000'
+		if (sub === 'crowdin') {
+			const token = await createVerificationState(interaction.user.id)
+			const url = `${base}/crowdin/verify?token=${encodeURIComponent(token)}`
+			await interaction.reply({
+				content: `To link your Crowdin account, open: ${url}\nThis link expires in 15 minutes.`,
+				ephemeral: true,
+			})
 			return
 		}
-		const token = await createVerificationState(interaction.user.id)
-		const base = process.env.PUBLIC_BASE_URL || 'http://localhost:3000'
-		const url = `${base}/crowdin/verify?token=${encodeURIComponent(token)}`
-		await interaction.reply({
-			content: `To link your Crowdin account, open: ${url}\nThis link expires in 15 minutes.`,
-			ephemeral: true,
-		})
+		if (sub === 'modrinth') {
+			const token = await createVerificationState(interaction.user.id)
+			const url = `${base}/modrinth/verify?token=${encodeURIComponent(token)}`
+			await interaction.reply({
+				content: `To link your Modrinth account, open: ${url}\nThis link expires in 15 minutes.`,
+				ephemeral: true,
+			})
+			return
+		}
 	},
 }
 

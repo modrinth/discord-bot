@@ -10,7 +10,8 @@ export interface ModrinthProject {
 	wiki_url: string
 	icon_url: string
 	color: number
-	project_type: string
+	project_type: 'mod' | 'plugin' | 'datapack' | 'modpack' | 'resourcepack' | 'shader'
+	downloads?: number
 }
 
 export interface ModrinthUser {
