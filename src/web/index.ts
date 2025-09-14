@@ -2,8 +2,8 @@ import { CrowdinOauthHelper, ModrinthApi, ModrinthOauthHelper } from '@/api/'
 import { db } from '@/db'
 import { crowdinAccounts, oauthVerifications, users } from '@/db/schema'
 import type { Client } from 'discord.js'
-import { and, eq, gt } from 'drizzle-orm'
-import express, { Request, Response } from 'express'
+import { and, eq, gt, sql } from 'drizzle-orm'
+import express, { NextFunction, Request, Response } from 'express'
 import { randomBytes } from 'node:crypto'
 import htmlClosePage from './close.html?raw'
 
@@ -35,7 +35,24 @@ export function startWebServer(client: Client) {
 		scopes: process.env.MODRINTH_SCOPES || '',
 	})
 
-	app.get('/healthz', (_req: Request, res: Response) => res.send('ok'))
+	app.get(
+		'/healthz',
+		(req: Request, res: Response, next: NextFunction) => {
+			let ip = req.ip || ''
+			if (ip.startsWith('::ffff:')) ip = ip.slice(7)
+			if (ip === '::1' || ip.startsWith('127.')) return next()
+			return res.status(403).send('forbidden')
+		},
+		async (_req: Request, res: Response) => {
+			try {
+				await db.execute(sql`select 1`)
+				res.status(200).send('ok')
+			} catch (err) {
+				console.error('[Healthz][DB][ERROR]', err)
+				res.status(503).send('db unavailable')
+			}
+		},
+	)
 
 	app.get('/modrinth/verify', async (req: Request, res: Response) => {
 		const token = (req.query.token as string) || ''
