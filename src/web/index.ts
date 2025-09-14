@@ -40,16 +40,16 @@ export function startWebServer(client: Client) {
 		(req: Request, res: Response, next: NextFunction) => {
 			let ip = req.ip || ''
 			if (ip.startsWith('::ffff:')) ip = ip.slice(7)
-			if (ip === '::1' || ip.startsWith('127.')) return next()
-			return res.status(403).send('forbidden')
+			if (ip === '::1' || ip.startsWith('172.16')) return next()
+			return res.status(403).send()
 		},
 		async (_req: Request, res: Response) => {
 			try {
 				await db.execute(sql`select 1`)
-				res.status(200).send('ok')
+				res.status(200).send()
 			} catch (err) {
 				console.error('[Healthz][DB][ERROR]', err)
-				res.status(503).send('db unavailable')
+				res.status(503).send()
 			}
 		},
 	)
