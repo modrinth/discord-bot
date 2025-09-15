@@ -30,10 +30,14 @@ export const verifyCommand: ChatInputCommand = {
 			return
 		}
 		if (sub === 'modrinth') {
-			const token = await createVerificationState(interaction.user.id)
-			const url = `${base}/modrinth/verify?token=${encodeURIComponent(token)}`
+			// const token = await createVerificationState(interaction.user.id)
+			// const url = `${base}/modrinth/verify?token=${encodeURIComponent(token)}`
+			// await interaction.reply({
+			// 	content: `To link your Modrinth account, open: ${url}\nThis link expires in 15 minutes.`,
+			// 	ephemeral: true,
+			// })
 			await interaction.reply({
-				content: `To link your Modrinth account, open: ${url}\nThis link expires in 15 minutes.`,
+				content: `Modrinth verification is coming soon! We'll let you know when it's ready.`,
 				ephemeral: true,
 			})
 			return
