@@ -132,19 +132,7 @@ export function startWebServer(client: Client) {
 						.setDescription(
 							creatorGranted
 								? 'You meet the requirements for the Creator role.'
-								: 'You do not meet the current threshold yet.',
-						)
-						.addFields(
-							{ name: 'Total weighted downloads', value: fmt(totalWeighted), inline: true },
-							{ name: 'Threshold', value: fmt(threshold), inline: true },
-							{
-								name: 'How we compute this',
-								value:
-									"Each project's downloads are multiplied by a weight and summed:\n" +
-									'- mods, resourcepacks, datapacks: ×1\n' +
-									'- plugins, shaders: ×3\n' +
-									'- modpacks: ×0.2',
-							},
+								: 'Your account has been linked, but you do not meet the current threshold yet. You will receive an email when you do.',
 						)
 					await member.send({ embeds: [embed] })
 				} catch {

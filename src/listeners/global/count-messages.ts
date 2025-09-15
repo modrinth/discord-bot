@@ -35,12 +35,23 @@ export const countMessages: CreateListener = {
 			.limit(1)
 
 		if (user[0].messagesSent == 20) {
-			// give user the trusted role
 			const guild = ctx.message.guild
 			const member = await guild.members.fetch(ctx.message.author.id)
-			await member.roles.add(process.env.ACTIVE_ROLE_ID!)
+			const roleId = process.env.ACTIVE_ROLE_ID!
+			if (!roleId) return
+
+			const alreadyHasRole = member.roles.cache.has(roleId)
+			if (alreadyHasRole) {
+				return
+			}
+
+			await member.roles.add(roleId)
 			const embed = createDefaultEmbed(ACTIVE_ROLE_GRANTED_EMBED)
-			await ctx.message.author.send({ embeds: [embed] })
+			try {
+				await ctx.message.author.send({ embeds: [embed] })
+			} catch {
+				// ignore DM failures
+			}
 		}
 	},
 }
