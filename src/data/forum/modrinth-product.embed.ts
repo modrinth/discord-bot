@@ -2,7 +2,7 @@ import { EmbedData } from 'discord.js'
 
 const data: EmbedData = {
 	description: [
-		'**Are you having an issue with a Modrinth product?**',
+		'❔ **Are you having an issue with a Modrinth product?**',
 		' ',
 		'Community members are not allowed to provide support to our products.',
 		'Use our [dedicated support portal](<https://support.modrinth.com>) instead for help with our products.',
