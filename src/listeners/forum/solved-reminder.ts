@@ -2,7 +2,7 @@ import { ThreadChannel } from 'discord.js'
 
 import { SOLVED_REMINDER_TEXT } from '@/data/forum'
 import { MessageListener } from '@/types'
-import { isByThreadOP, isInCommunitySupportThread } from '@/utils'
+import { isByThreadOP, isInCommunitySupportThread, isThreadStarterMessage } from '@/utils'
 
 const solvedPhrases = [
 	/\b(thanks|thank you|ty|tysm|appreciate it)\b/i,
@@ -58,6 +58,7 @@ export const remindSolvedUpdate: MessageListener = {
 		if (!('newMessage' in ctx)) return false
 		const { newMessage } = ctx
 		if (!('channel' in newMessage)) return false
+		if (await isThreadStarterMessage(newMessage)) return false
 		// PartialMessage may lack content or author; bail if unknown
 		const content = (newMessage as any).content as string | undefined
 		const authorId = (newMessage as any).author?.id as string | undefined
