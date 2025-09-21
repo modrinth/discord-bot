@@ -1,4 +1,4 @@
-import { SlashCommandBuilder } from 'discord.js'
+import { EmbedBuilder, SlashCommandBuilder } from 'discord.js'
 
 import type { ChatInputCommand } from '@/types/commands'
 import { createVerificationState } from '@/web'
@@ -23,8 +23,23 @@ export const verifyCommand: ChatInputCommand = {
 		if (sub === 'crowdin') {
 			const token = await createVerificationState(interaction.user.id)
 			const url = `${base}/crowdin/verify?token=${encodeURIComponent(token)}`
+
+			const embed = new EmbedBuilder()
+				.setColor(0x1bd96a)
+				.setTitle('Link your Crowdin account')
+				.setDescription(
+					[
+						'We need to verify your Crowdin account to link it with your Discord.',
+						' ',
+						'To continue, please click the link down below.',
+						' ',
+						url,
+					].join('\n'),
+				)
+				.setFooter({ text: 'This link will expire in 15 minutes' })
+
 			await interaction.reply({
-				content: `To link your Crowdin account, open: ${url}\nThis link expires in 15 minutes.`,
+				embeds: [embed],
 				flags: 'Ephemeral',
 			})
 			return
