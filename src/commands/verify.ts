@@ -25,7 +25,7 @@ export const verifyCommand: ChatInputCommand = {
 			const url = `${base}/crowdin/verify?token=${encodeURIComponent(token)}`
 			await interaction.reply({
 				content: `To link your Crowdin account, open: ${url}\nThis link expires in 15 minutes.`,
-				ephemeral: true,
+				flags: 'Ephemeral',
 			})
 			return
 		}
@@ -38,7 +38,7 @@ export const verifyCommand: ChatInputCommand = {
 			// })
 			await interaction.reply({
 				content: `Modrinth verification is coming soon! We'll let you know when it's ready.`,
-				ephemeral: true,
+				flags: 'Ephemeral',
 			})
 			return
 		}
