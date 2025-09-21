@@ -10,7 +10,7 @@ function getFileExtension(filename: string): string | null {
 export const scanForBlocklistedFiles: CreateListener = {
 	id: 'global:scan-for-blocklisted-files',
 	event: 'create',
-	description: 'Scans message attachments for blocklisted file extentions',
+	description: 'Scans message attachments for blocklisted file extensions',
 	priority: 0,
 	filter: { allowBots: false, allowDMs: false },
 	match: async () => true,
