@@ -7,7 +7,7 @@ const data: EmbedData = {
 		'Community members are not allowed to provide support to our products.',
 		'Use our [dedicated support portal](<https://support.modrinth.com>) instead for help with our products.',
 		' ',
-		"Mark this thread as </solved:1361745562063605781> if that's correct.",
+		`Mark this thread as </solved:${process.env.SOLVED_COMMAND_ID}> if that's correct.`,
 	].join('\n'),
 }
 
