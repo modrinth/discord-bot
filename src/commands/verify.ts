@@ -33,7 +33,7 @@ export const verifyCommand: ChatInputCommand = {
 						' ',
 						'To continue, please click the link down below.',
 						' ',
-						url,
+						`**[[Click here to continue →]](${url})**`,
 					].join('\n'),
 				)
 				.setFooter({ text: 'This link will expire in 15 minutes' })
