@@ -35,7 +35,7 @@ export const verifyCommand: ChatInputCommand = {
 						' ',
 						'To continue, please click the link down below.',
 						' ',
-						`**[[Click here to continue →]](${url})**`,
+						`**[[ Click here to continue → ]](${url})**`,
 						' ',
 						`-# This link will expire <t:${expireAt}:R>`,
 					].join('\n'),
