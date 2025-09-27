@@ -3,8 +3,10 @@ import { CronJob } from 'cron'
 import { createDefaultEmbed } from '@/utils'
 
 export function startThreadCheckCron(client: Client) {
+	const debug = process.env.CRON_DEBUG_MODE === '1'
+
 	const job = new CronJob(
-		'0 * * * *', // run every hour
+		debug ? '*/10 * * * * *' : '0 * * * *', // run every hour on prod, every 10 sec on debug
 		async function () {
 			console.log('[Cron] Checking inactive threads...')
 
@@ -13,7 +15,13 @@ export function startThreadCheckCron(client: Client) {
 					const active = await guild.channels.fetchActiveThreads()
 
 					for (const [, thread] of active.threads) {
+						// Ignore threads that are not in #community-support
 						if (thread.parentId !== process.env.COMMUNITY_SUPPORT_FORUM_ID) continue
+						// Ignore threads that are pinned
+						if (thread.flags.has('Pinned')) {
+							debug && console.log(`[Debug][Cron] Skipping thread ${thread.id} is pinned`)
+							continue
+						}
 
 						// Last message
 						const lastMessage = thread.lastMessageId
@@ -23,16 +31,17 @@ export function startThreadCheckCron(client: Client) {
 						const inactiveFor = lastMessage ? Date.now() - lastMessage.createdTimestamp : Infinity
 
 						// thresholds
-						const warnThreshold = 1000 * 60 * 60 * 24 * 2 // 2 days
-						const archiveThreshold = 1000 * 60 * 60 * 24 * 4 // 4 days
+						const warnThreshold = debug ? 1000 * 15 : 1000 * 60 * 60 * 24 * 2 // 2 days (prod), 15 sec (debug)
+						const archiveThreshold = debug ? 1000 * 30 : 1000 * 60 * 60 * 24 * 4 // 4 days (prod), 30 sec (debug)
 
 						if (inactiveFor > archiveThreshold) {
-							console.log(`[Cron] Marking inactive thread as solved: ${thread.name}`)
+							debug &&
+								console.log(`[Debug][Cron] Marking inactive thread as solved: ${thread.name}`)
 
 							const embed = createDefaultEmbed({
-								title: ':lock: Thread archived',
-								description: 'This thread has been archived due to inactivity.',
-							}).setColor(0xffa347)
+								title: ':white_check_mark: Thread archived',
+								description: 'This thread was resolved automatically after inactivity.',
+							})
 
 							await thread.send({ embeds: [embed] })
 							await thread
@@ -53,7 +62,8 @@ export function startThreadCheckCron(client: Client) {
 							)
 
 							if (!alreadyWarned) {
-								console.log(`[Cron] Warning in thread: ${thread.name}`)
+								debug &&
+									console.log(`[Debug][Cron] Sending stale warning to the thread ${thread.id}`)
 								await thread.send(warningMsg).catch(() => {})
 							}
 						}
