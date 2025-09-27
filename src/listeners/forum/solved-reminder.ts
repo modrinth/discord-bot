@@ -37,6 +37,7 @@ export const remindSolvedCreate: MessageListener = {
 			debug && console.log('[solved:create] not by OP or starter fetch failed')
 			return false
 		}
+		if (await isThreadStarterMessage(message)) return false
 		const ok = contentIndicatesSolved(message.content)
 		debug && console.log('[solved:create] content check', { content: message.content, ok })
 		return ok
