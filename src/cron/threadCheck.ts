@@ -43,7 +43,7 @@ export function startThreadCheckCron(client: Client) {
 								.catch(() => {})
 						} else if (inactiveFor > warnThreshold) {
 							const unixTs = Math.floor(lastMessage?.createdTimestamp! / 1000)
-							const warningMsg = `⚠️ This thread has been inactive since <t:${unixTs}:R>. It will be automatically archived soon.`
+							const warningMsg = `-# ⚠️ This thread has been inactive since <t:${unixTs}:R>. It will be automatically archived soon.`
 
 							// Prevent spam: don’t re-send warning if already sent
 							const recentMsgs = await thread.messages.fetch({ limit: 10 })
