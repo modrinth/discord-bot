@@ -10,6 +10,7 @@ import { createCommandRegistry, deployCommands, tryJoinThread } from '@/utils'
 import { db } from './db'
 import { createMessageHandlers, createReactionHandlers } from './types/listeners'
 import { startWebServer } from './web'
+import { startThreadCheckCron } from '@/cron/threadCheck'
 
 const DEBUG_COMMAND_IDS = process.argv.includes('--debug-command-ids')
 
@@ -77,6 +78,9 @@ client.once(Events.ClientReady, async (readyClient) => {
 			// Ignore failures.
 		}
 	}
+
+	// TODO: Change this to more universal src/cron/index.ts
+	startThreadCheckCron(client)
 })
 
 // Auto-join newly created threads in #community-support
