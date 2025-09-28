@@ -2,13 +2,13 @@ import type { Client } from 'discord.js'
 import { CronJob } from 'cron'
 import { createDefaultEmbed } from '@/utils'
 
-export function startThreadCheckCron(client: Client) {
+export function startThreadStaleCheckCron(client: Client) {
 	const debug = process.env.CRON_DEBUG_MODE === '1'
 
 	const job = new CronJob(
 		debug ? '*/10 * * * * *' : '0 * * * *', // run every hour on prod, every 10 sec on debug
 		async function () {
-			console.log('[Cron] Checking inactive threads...')
+			console.log('[Cron][ThreadStaleCheck] Checking inactive threads...')
 
 			for (const [, guild] of client.guilds.cache) {
 				try {
@@ -19,7 +19,18 @@ export function startThreadCheckCron(client: Client) {
 						if (thread.parentId !== process.env.COMMUNITY_SUPPORT_FORUM_ID) continue
 						// Ignore threads that are pinned
 						if (thread.flags.has('Pinned')) {
-							debug && console.log(`[Debug][Cron] Skipping thread ${thread.id} is pinned`)
+							debug &&
+								console.log(
+									`[Debug][Cron][ThreadStaleCheck] Skipping thread ${thread.id} is pinned`,
+								)
+							continue
+						}
+						// Ignore threads that are already solved
+						if (thread.appliedTags.includes(process.env.COMMUNITY_SUPPORT_FORUM_SOLVED_TAG_ID!)) {
+							debug &&
+								console.log(
+									`[Debug][Cron][ThreadStaleCheck] Skipping thread ${thread.id} is solved`,
+								)
 							continue
 						}
 
@@ -36,7 +47,9 @@ export function startThreadCheckCron(client: Client) {
 
 						if (inactiveFor > archiveThreshold) {
 							debug &&
-								console.log(`[Debug][Cron] Marking inactive thread as solved: ${thread.name}`)
+								console.log(
+									`[Debug][Cron][ThreadStaleCheck] Marking inactive thread as solved: ${thread.name}`,
+								)
 
 							const embed = createDefaultEmbed({
 								title: ':white_check_mark: Thread archived',
