@@ -42,8 +42,8 @@ export function startThreadStaleCheckCron(client: Client) {
 						const inactiveFor = lastMessage ? Date.now() - lastMessage.createdTimestamp : Infinity
 
 						// thresholds
-						const warnThreshold = debug ? 1000 * 15 : 1000 * 60 * 60 * 24 * 2 // 2 days (prod), 15 sec (debug)
-						const archiveThreshold = debug ? 1000 * 30 : 1000 * 60 * 60 * 24 * 4 // 4 days (prod), 30 sec (debug)
+						const warnThreshold = debug ? 1000 * 15 : 1000 * 60 * 60 * 24 * 3 // 3 days (prod), 15 sec (debug)
+						const archiveThreshold = debug ? 1000 * 30 : 1000 * 60 * 60 * 24 * 5 // 5 days (prod), 30 sec (debug)
 
 						if (inactiveFor > archiveThreshold) {
 							debug &&
@@ -65,7 +65,7 @@ export function startThreadStaleCheckCron(client: Client) {
 								.catch(() => {})
 						} else if (inactiveFor > warnThreshold) {
 							const unixTs = Math.floor(lastMessage?.createdTimestamp! / 1000)
-							const warningMsg = `-# ⚠️ This thread has been inactive since <t:${unixTs}:R>. It will be automatically archived soon.`
+							const warningMsg = `-# ⚠️ Last message in this thread was sent <t:${unixTs}:R>. It will be automatically archived soon.`
 
 							// Prevent spam: don’t re-send warning if already sent
 							const recentMsgs = await thread.messages.fetch({ limit: 10 })
