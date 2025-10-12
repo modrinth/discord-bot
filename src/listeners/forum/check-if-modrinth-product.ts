@@ -3,7 +3,7 @@ import { ThreadChannel } from 'discord.js'
 import { MODRINTH_PROUDCT_EMBED } from '@/data'
 import { createDefaultEmbed, isInCommunitySupportThread, isThreadStarterMessage } from '@/utils'
 
-import { CreateListener } from '../../types'
+import { CreateListener } from '@/types'
 
 const modrinthProductKeywords = [
 	/\b(modrinth app|theseus_gui)\b/i,
@@ -28,7 +28,8 @@ export const checkIfModrinthProduct: CreateListener = {
 		const { message } = ctx
 		if (!isInCommunitySupportThread(message) || !(await isThreadStarterMessage(message)))
 			return false
-		return contentIndicatesModrinthProduct(message.content)
+		const { name } = message.channel as ThreadChannel
+		return contentIndicatesModrinthProduct(`${name} ${message.content}`)
 	},
 	handle: async (ctx: any) => {
 		const ch = ctx.message.channel as ThreadChannel
