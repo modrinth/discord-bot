@@ -2,7 +2,12 @@ import { ThreadChannel } from 'discord.js'
 
 import { SOLVED_REMINDER_TEXT } from '@/data/forum'
 import { MessageListener } from '@/types'
-import { isByThreadOP, isInCommunitySupportThread, isThreadStarterMessage } from '@/utils'
+import {
+	isByThreadOP,
+	isInCommunitySupportThread,
+	isThreadSolved,
+	isThreadStarterMessage,
+} from '@/utils'
 
 const solvedPhrases = [
 	/\b(thanks|thank you|ty|tysm|appreciate it)\b/i,
@@ -37,6 +42,7 @@ export const remindSolvedCreate: MessageListener = {
 			debug && console.log('[solved:create] not by OP or starter fetch failed')
 			return false
 		}
+		if (await isThreadSolved(message)) return false
 		if (await isThreadStarterMessage(message)) return false
 		const ok = contentIndicatesSolved(message.content)
 		debug && console.log('[solved:create] content check', { content: message.content, ok })

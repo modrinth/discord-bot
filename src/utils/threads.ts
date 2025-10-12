@@ -54,3 +54,17 @@ export async function isByThreadOP(message: Message): Promise<boolean> {
 		return false
 	}
 }
+
+/** Returns true if the given message was in a thead that is marked as solved */
+export async function isThreadSolved(message: Message): Promise<boolean> {
+	const ch = message.channel
+	if (!('isThread' in ch) || !ch.isThread()) return false
+	try {
+		// Ensure we're in the thread so we can fetch the starter reliably
+		await tryJoinThread(ch as ThreadChannel)
+
+		return ch.appliedTags?.includes(process.env.COMMUNITY_SUPPORT_FORUM_SOLVED_TAG_ID!)
+	} catch {
+		return false
+	}
+}
