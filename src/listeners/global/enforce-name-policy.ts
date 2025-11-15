@@ -1,12 +1,7 @@
 import { GuildMember } from 'discord.js'
 
 import { CreateListener } from '@/types'
-import { isByActivatedUser } from '@/utils/users'
-
-function capitalizeFirstChar(name: string): string {
-	if (!name) return ''
-	return name[0].toUpperCase() + name.slice(1)
-}
+import { isByActivatedUser, capitalizeFirstChar } from '@/utils'
 
 export const enforceNamePolicy: CreateListener = {
 	id: 'global:enforce-name-policy',
