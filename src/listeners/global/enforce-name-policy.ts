@@ -2,6 +2,7 @@ import { GuildMember } from 'discord.js'
 
 import { CreateListener } from '@/types'
 import { isByActivatedUser, capitalizeFirstChar } from '@/utils'
+import { info } from '@/logging/logger'
 
 export const enforceNamePolicy: CreateListener = {
 	id: 'global:enforce-name-policy',
@@ -21,19 +22,21 @@ export const enforceNamePolicy: CreateListener = {
 		if (isByActivatedUser(member)) return
 
 		const displayName = member.displayName.toLowerCase()
+		const compliantDisplayName = capitalizeFirstChar(member.user.username)
 
 		const namePolicy = /^[\u0020-\u024F\-'. ]+$/u
 
 		if (!namePolicy.test(displayName)) {
 			// At this point, name violates the policy.
-			console.log(`Name policy violation: ${displayName} (${member.id})`)
 			try {
-				await member.setNickname(capitalizeFirstChar(member.user.username), 'Name policy violation')
+				await member.setNickname(compliantDisplayName, 'Name policy violation')
 			} catch (err) {
 				console.error(`Failed to update nickname for ${member.id}:`, err)
 			}
 
-			// 	TODO: Log this action
+			info(
+				`:pencil2: Reset nickname for user ${member.user} (\`${member.user.username}\`, ID: ${member.user.id}) from \`${displayName}\` to \`${compliantDisplayName}\`.`,
+			)
 		}
 	},
 }

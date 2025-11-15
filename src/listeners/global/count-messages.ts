@@ -5,6 +5,7 @@ import { db } from '@/db'
 import { users } from '@/db/schema'
 import { CreateListener } from '@/types'
 import { createDefaultEmbed } from '@/utils'
+import { info } from '@/logging/logger'
 
 export const countMessages: CreateListener = {
 	id: 'global:count-messages',
@@ -49,6 +50,9 @@ export const countMessages: CreateListener = {
 			const embed = createDefaultEmbed(ACTIVE_ROLE_GRANTED_EMBED)
 			try {
 				await ctx.message.author.send({ embeds: [embed] })
+				info(
+					`:white_check_mark: User ${member.user} (\`${member.user.username}\`, ID: ${member.user.id}) has been automatically verified for 20 counted messages.`,
+				)
 			} catch {
 				// ignore DM failures
 			}

@@ -12,6 +12,9 @@ import { createMessageHandlers, createReactionHandlers } from './types/listeners
 import { startWebServer } from './web'
 import { startThreadStaleCheckCron } from '@/cron/threadStaleCheck'
 
+import { setLogger } from './logging/logger'
+import { createDiscordLogger } from './logging/discordLogger'
+
 const DEBUG_COMMAND_IDS = process.argv.includes('--debug-command-ids')
 
 // Handle CLI flags before booting the bot
@@ -33,7 +36,12 @@ const client = new Client({
 })
 
 client.once(Events.ClientReady, async (readyClient) => {
-	console.log(`Bot is ready, logged in as ${readyClient.user.tag}`)
+	const logger = await createDiscordLogger(client, process.env.LOG_CHANNEL_ID!)
+	setLogger(logger)
+
+	logger.info(
+		`:sparkles: Modrinth Bot is online! Logged in as (\`${readyClient.user.tag}\`, ID: ${readyClient.user.id}).`,
+	)
 
 	// Optionally list all registered application commands and their IDs
 	if (DEBUG_COMMAND_IDS) {

@@ -6,6 +6,7 @@ import { eq } from 'drizzle-orm'
 import { db } from '@/db'
 import { users } from '@/db/schema'
 import { ChatInputCommand } from '@/types'
+import { info } from '@/logging/logger'
 
 export const resetCommand: ChatInputCommand = {
 	data: new SlashCommandBuilder()
@@ -32,5 +33,8 @@ export const resetCommand: ChatInputCommand = {
 		await interaction.reply({
 			content: `User's (\`${member.user.username}\`, ID: ${member.user.id}) active role and message counter has been reset.`,
 		})
+		info(
+			`:pencil: User ${member.user} (\`${member.user.username}\`, ID: ${member.user.id}) has been reset by moderator (\`${interaction.user.username}\`, ID: ${interaction.user.id}).`,
+		)
 	},
 }
