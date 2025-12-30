@@ -8,6 +8,7 @@ import { greetCommunitySupport } from './forum/greet'
 import { lockOnOpDeletesStarter } from './forum/lock-on-op-delete-starter'
 import { remindSolvedCreate, remindSolvedUpdate } from './forum/solved-reminder'
 import { scanForRawLogs } from '@/listeners/global/scan-for-raw-logs'
+import { analyzeLogs } from '@/listeners/forum/analyze-logs'
 
 const listeners: MessageListener[] = [
 	greetCommunitySupport,
@@ -19,6 +20,7 @@ const listeners: MessageListener[] = [
 	scanForBlocklistedFiles,
 	enforceNamePolicy,
 	scanForRawLogs,
+	analyzeLogs,
 ]
 
 export default listeners
