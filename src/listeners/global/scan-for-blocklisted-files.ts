@@ -1,6 +1,8 @@
 import { BLOCKLISTED_FILE_EXTENSIONS } from '@/data/misc'
 import { CreateListener } from '@/types'
 import { toHumanFileSize } from '@/utils'
+import { info } from '@/logging/logger'
+import { CategoryChannel, Channel, GuildChannel, TextChannel, ThreadChannel } from 'discord.js'
 
 function getFileExtension(filename: string): string | null {
 	const parts = filename.split('.')
@@ -19,14 +21,19 @@ export const scanForBlocklistedFiles: CreateListener = {
 		if (!ctx.message.author) return
 		if (!ctx.message.attachments) return
 
-		ctx.message.attachments.forEach((attachment) => {
-			if (attachment.name.length === 0) return
-			if (BLOCKLISTED_FILE_EXTENSIONS.includes(<string>getFileExtension(attachment.name))) {
-				ctx.message.delete()
+		for (const attachment of ctx.message.attachments.values()) {
+			if (!attachment.name) continue
 
-				// TODO: Alert mods.
-				if (ctx.message.channel.isSendable()) {
-					ctx.message.channel.send(
+			const ext = getFileExtension(attachment.name)
+			if (!ext) continue
+
+			if (BLOCKLISTED_FILE_EXTENSIONS.includes(ext)) {
+				await ctx.message.delete()
+
+				const channel = await ctx.client.channels.fetch(process.env.MOD_CHANNEL_ID!)
+
+				if (channel && channel.isTextBased()) {
+					await (channel as TextChannel).send(
 						[
 							`⚠️ User ${ctx.message.author} (\`${ctx.message.author.username}\`, ID: ${ctx.message.author.id}) attempted to sent a blacklisted file type in ${ctx.message.channel}.`,
 							`> Filename: \`${attachment.name}\``,
@@ -35,6 +42,6 @@ export const scanForBlocklistedFiles: CreateListener = {
 					)
 				}
 			}
-		})
+		}
 	},
 }

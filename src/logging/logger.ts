@@ -1,5 +1,3 @@
-// src/logging/logger.ts
-
 export interface Logger {
 	info: (msg: string) => void
 	warn: (msg: string) => void
