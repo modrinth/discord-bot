@@ -7,6 +7,7 @@ import { githubCommand } from './github'
 import { pingCommand } from './ping'
 import { solvedCommand } from './solved'
 import { verifyCommand } from './verify'
+import { pmCommand } from '@/commands/pm'
 
 export const commands: AnyCommand[] = [
 	docsCommand,
@@ -16,6 +17,7 @@ export const commands: AnyCommand[] = [
 	verifyCommand,
 	resetCommand,
 	projectCommand,
+	pmCommand,
 ]
 
 export default commands
