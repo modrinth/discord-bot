@@ -1,13 +1,13 @@
 import { ChatInputCommand } from '@/types'
 import {
 	ChatInputCommandInteraction,
-	EmbedBuilder,
 	GuildMemberRoleManager,
 	SlashCommandBuilder,
 } from 'discord.js'
 import process from 'node:process'
 import { PERMISSION_ERROR_TEXT } from '@/data'
 import { info } from '@/logging/logger'
+import { createDefaultEmbed } from '@/utils'
 
 export const pmCommand: ChatInputCommand = {
 	data: new SlashCommandBuilder()
@@ -51,10 +51,10 @@ export const pmCommand: ChatInputCommand = {
 		const title = interaction.options.getString('title', false)
 		const member = await interaction.guild.members.fetch(id)
 
-		const embed = new EmbedBuilder()
-			.setColor(0x1bd96a)
-			.setTitle(title ? title : 'Message from a moderator')
-			.setDescription(message)
+		const embed = createDefaultEmbed({
+			title: title ? title : 'Message from a moderator',
+			description: message,
+		})
 
 		await member.user.send({ embeds: [embed] })
 		await interaction.reply({
