@@ -33,6 +33,8 @@ export const moderatorPingReminder: MessageReactListener = {
 		)
 		if (duplicate) return
 
+		await reaction.remove()
+
 		await message.reply(MOD_ROLE_PING_REPORT_INSTEAD)
 	},
 }
