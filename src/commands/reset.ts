@@ -29,13 +29,16 @@ export const resetCommand: ChatInputCommand = {
 		const id = interaction.options.getString('id', true)
 		const member = await interaction.guild.members.fetch(id)
 
-		if (!member.roles.cache.has(process.env.DISCORD_MODERATOR_ROLE_ID!)) {
+		const invoker = await interaction.guild.members.fetch(interaction.user.id)
+
+		if (!invoker.roles.cache.has(process.env.DISCORD_MODERATOR_ROLE_ID!)) {
 			await interaction.reply({
 				content: PERMISSION_ERROR_TEXT,
 				flags: 'Ephemeral',
 			})
 			return
 		}
+
 		await db.update(users).set({ messagesSent: 0 }).where(eq(users.id, id))
 		await member.roles.remove(process.env.ACTIVE_ROLE_ID!)
 
