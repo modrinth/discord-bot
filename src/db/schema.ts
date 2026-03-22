@@ -1,14 +1,54 @@
-import { index, integer, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
+import { index, integer, jsonb, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core'
 
 export const users = pgTable('users', {
 	id: text('id').primaryKey(),
 	messagesSent: integer('messages_sent').notNull().default(0),
+	trustScore: integer('trust_score').notNull().default(50),
 	crowdinUserId: text('crowdin_user_id'),
 	modrinthUserId: text('modrinth_user_id'),
 })
 
+export const reports = pgTable(
+	'reports',
+	{
+		reportId: uuid('report_id').primaryKey().defaultRandom(),
+
+		reportedUserId: text('reported_user_id').notNull(),
+		reporterUserId: text('reporter_user_id'),
+
+		messageId: text('message_id'),
+		channelId: text('channel_id'),
+
+		reason: text('reason'),
+
+		source: text('source').notNull(), // user | automod
+		automodRule: text('automod_rule'),
+
+		confidenceScore: integer('confidence_score'),
+		reportWeight: integer('report_weight'),
+		reporterTrustSnapshot: integer('reporter_trust_snapshot'),
+
+		status: text('status').notNull().default('pending'),
+
+		createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+
+		resolvedAt: timestamp('resolved_at', { withTimezone: true }),
+		resolvedBy: text('resolved_by'),
+
+		evidence: jsonb('evidence'),
+	},
+	(table) => ({
+		reportedUserIdx: index('reports_reported_user_idx').on(table.reportedUserId),
+		reporterUserIdx: index('reports_reporter_user_idx').on(table.reporterUserId),
+		statusIdx: index('reports_status_idx').on(table.status),
+		createdIdx: index('reports_created_idx').on(table.createdAt),
+	}),
+)
+
 export type User = typeof users.$inferSelect
 export type NewUser = typeof users.$inferInsert
+export type Report = typeof reports.$inferSelect
+export type NewReport = typeof reports.$inferInsert
 
 // Stores short-lived verification state tokens for OAuth CSRF protection
 export const oauthVerifications = pgTable(

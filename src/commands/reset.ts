@@ -7,7 +7,6 @@ import { db } from '@/db'
 import { users } from '@/db/schema'
 import { ChatInputCommand } from '@/types'
 import { info } from '@/logging/logger'
-import content from '*?raw'
 import { PERMISSION_ERROR_TEXT } from '@/data'
 
 export const resetCommand: ChatInputCommand = {

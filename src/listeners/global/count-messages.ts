@@ -17,6 +17,7 @@ export const countMessages: CreateListener = {
 	handle: async (ctx) => {
 		if (!ctx.message.guild) return
 		if (!ctx.message.author) return
+		if (ctx.message.content.length <= 15) return
 
 		await db
 			.insert(users)

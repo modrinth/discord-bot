@@ -1,20 +1,34 @@
 {
-	"version": "7",
-	"dialect": "postgresql",
-	"entries": [
-		{
-			"idx": 0,
-			"version": "7",
-			"when": 1755788003578,
-			"tag": "0000_lethal_pride",
-			"breakpoints": true
-		},
-		{
-			"idx": 1,
-			"version": "7",
-			"when": 1756241903584,
-			"tag": "0001_complex_vengeance",
-			"breakpoints": true
-		}
-	]
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1755788003578,
+      "tag": "0000_lethal_pride",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1756241903584,
+      "tag": "0001_complex_vengeance",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1772350402293,
+      "tag": "0002_shiny_zarek",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1773045663711,
+      "tag": "0003_loud_moon_knight",
+      "breakpoints": true
+    }
+  ]
 }

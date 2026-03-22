@@ -8,6 +8,8 @@ import { pingCommand } from './ping'
 import { solvedCommand } from './solved'
 import { verifyCommand } from './verify'
 import { pmCommand } from '@/commands/pm'
+import { memberCommand } from '@/commands/member'
+import { reportCommand } from '@/commands/report'
 
 export const commands: AnyCommand[] = [
 	docsCommand,
@@ -18,6 +20,8 @@ export const commands: AnyCommand[] = [
 	resetCommand,
 	projectCommand,
 	pmCommand,
+	memberCommand,
+	// reportCommand,
 ]
 
 export default commands
