@@ -14,3 +14,5 @@ yarn-error.log*
 .env
 
 dist/*
+
+.idea/compiler.xml
