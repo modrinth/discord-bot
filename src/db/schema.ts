@@ -45,6 +45,37 @@ export const reports = pgTable(
 	}),
 )
 
+export const applications = pgTable(
+	'applications',
+	{
+		applicationId: uuid('application_id').primaryKey().defaultRandom(),
+
+		userId: text('user_id').notNull(),
+
+		status: text('status').notNull().default('pending'),
+		// pending | approved | rejected
+
+		createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+
+		reviewedAt: timestamp('reviewed_at', { withTimezone: true }),
+
+		reviewedBy: text('reviewed_by'),
+
+		rejectionReason: text('rejection_reason'),
+
+		cooldownUntil: timestamp('cooldown_until', {
+			withTimezone: true,
+		}),
+
+		linkedMessageId: text('linked_message_id'),
+	},
+	(table) => ({
+		userIdx: index('applications_user_idx').on(table.userId),
+		statusIdx: index('applications_status_idx').on(table.status),
+		createdIdx: index('applications_created_idx').on(table.createdAt),
+	}),
+)
+
 export type User = typeof users.$inferSelect
 export type NewUser = typeof users.$inferInsert
 export type Report = typeof reports.$inferSelect

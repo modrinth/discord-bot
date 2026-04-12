@@ -10,6 +10,10 @@ import { verifyCommand } from './verify'
 import { pmCommand } from '@/commands/pm'
 import { memberCommand } from '@/commands/member'
 import { reportCommand } from '@/commands/report'
+import { applyCommand } from '@/commands/apply'
+import { assignCommand } from '@/commands/assign'
+import { approveCommand } from '@/commands/approve'
+import { rejectCommand } from '@/commands/reject'
 
 export const commands: AnyCommand[] = [
 	docsCommand,
@@ -22,6 +26,10 @@ export const commands: AnyCommand[] = [
 	pmCommand,
 	memberCommand,
 	// reportCommand,
+	applyCommand,
+	assignCommand,
+	approveCommand,
+	rejectCommand,
 ]
 
 export default commands

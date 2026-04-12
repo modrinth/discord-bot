@@ -29,6 +29,20 @@
       "when": 1773045663711,
       "tag": "0003_loud_moon_knight",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1775894191290,
+      "tag": "0004_bouncy_dragon_man",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1775963110902,
+      "tag": "0005_sad_rocket_raccoon",
+      "breakpoints": true
     }
   ]
 }
