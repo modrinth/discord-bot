@@ -5,13 +5,11 @@ import { PERMISSION_ERROR_TEXT } from '@/data'
 import { db } from '@/db'
 import { applications } from '@/db/schema'
 import { eq } from 'drizzle-orm'
-import { int } from 'drizzle-orm/mysql-core'
-import { channel } from 'diagnostics_channel'
 
 export const assignCommand: ChatInputCommand = {
 	data: new SlashCommandBuilder()
 		.setName('assign')
-		.setDescription('Assign case to a moderator.')
+		.setDescription('Assign case to a moderator')
 		.addStringOption((option) =>
 			option.setName('id').setDescription('Application ID').setRequired(true),
 		)
@@ -20,7 +18,7 @@ export const assignCommand: ChatInputCommand = {
 		) as SlashCommandBuilder,
 	meta: {
 		name: 'assign',
-		description: 'Assign case to a moderator.',
+		description: 'Assign case to a moderator',
 		category: 'moderation',
 		cooldownSeconds: 3,
 	},
@@ -77,10 +75,14 @@ export const assignCommand: ChatInputCommand = {
 			.where(eq(applications.applicationId, applicationId!))
 			.returning()
 
-		const modChannel = await interaction.guild.channels.fetch(process.env.MOD_CHANNEL_ID!)
+		const applicationsChannel = await interaction.guild.channels.fetch(
+			process.env.APPLICATIONS_CHANNEL_ID!,
+		)
 
-		if (modChannel && modChannel.isTextBased()) {
-			const linkedApplicationEmbed = await modChannel.messages.fetch(updated.linkedMessageId!)
+		if (applicationsChannel && applicationsChannel.isTextBased()) {
+			const linkedApplicationEmbed = await applicationsChannel.messages.fetch(
+				updated.linkedMessageId!,
+			)
 
 			const embed = EmbedBuilder.from(linkedApplicationEmbed.embeds[0])
 

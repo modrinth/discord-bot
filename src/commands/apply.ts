@@ -15,12 +15,10 @@ import { createDefaultEmbed } from '@/utils'
 export const applyCommand: ChatInputCommand = {
 	data: new SlashCommandBuilder()
 		.setName('apply')
-		.setDescription(
-			'Apply for a trusted users program under new Enhanced Security Enforcement Act.',
-		),
+		.setDescription('Apply for a Advanced Trusted Programme'),
 	meta: {
 		name: 'apply',
-		description: 'Apply for a trusted users program under new Enhanced Security Enforcement Act',
+		description: 'Apply for a Advanced Trusted Programme',
 		category: 'utility',
 		cooldownSeconds: 10,
 	},
@@ -101,7 +99,7 @@ export const applyCommand: ChatInputCommand = {
 					})
 					.returning()
 
-				const channel = await interaction.guild.channels.fetch(process.env.MOD_CHANNEL_ID!)
+				const channel = await interaction.guild.channels.fetch(process.env.APPLICATIONS_CHANNEL_ID!)
 
 				if (channel && channel.isTextBased()) {
 					const applicationEmbed = await (channel as TextChannel).send({

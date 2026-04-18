@@ -12,13 +12,19 @@ import { PERMISSION_ERROR_TEXT } from '@/data'
 export const resetCommand: ChatInputCommand = {
 	data: new SlashCommandBuilder()
 		.setName('reset')
-		.setDescription("Reset user's active role and message counter")
+		.setDescription("Remove user's trusted role with option to reset their message counter")
 		.addStringOption((option) =>
 			option.setName('id').setDescription('Discord User ID').setRequired(true),
+		)
+		.addBooleanOption((option) =>
+			option
+				.setName('reset_counter')
+				.setDescription("Reset user's message counter to 0")
+				.setRequired(false),
 		) as SlashCommandBuilder,
 	meta: {
 		name: 'reset',
-		description: 'Reset user active role and message counter',
+		description: "Remove user's trusted role with option to reset their message counter",
 		category: 'moderation',
 		guildOnly: true,
 	},
@@ -27,6 +33,7 @@ export const resetCommand: ChatInputCommand = {
 
 		const id = interaction.options.getString('id', true)
 		const member = await interaction.guild.members.fetch(id)
+		const resetMessagesCounter = interaction.options.getBoolean('reset_counter', false)
 
 		const invoker = await interaction.guild.members.fetch(interaction.user.id)
 
@@ -38,11 +45,13 @@ export const resetCommand: ChatInputCommand = {
 			return
 		}
 
-		await db.update(users).set({ messagesSent: 0 }).where(eq(users.id, id))
-		await member.roles.remove(process.env.ACTIVE_ROLE_ID!)
+		if (resetMessagesCounter)
+			await db.update(users).set({ messagesSent: 0 }).where(eq(users.id, id))
+
+		await member.roles.remove(process.env.TRUSTED_ROLE_ID!)
 
 		await interaction.reply({
-			content: `User's (\`${member.user.username}\`, ID: ${member.user.id}) active role and message counter has been reset.`,
+			content: `User's (\`${member.user.username}\`, ID: ${member.user.id}) trusted role and message counter has been reset.`,
 		})
 		info(
 			`:pencil: User ${member.user} (\`${member.user.username}\`, ID: ${member.user.id}) has been reset by moderator (\`${interaction.user.username}\`, ID: ${interaction.user.id}).`,

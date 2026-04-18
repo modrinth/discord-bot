@@ -5,20 +5,18 @@ import { PERMISSION_ERROR_TEXT } from '@/data'
 import { db } from '@/db'
 import { applications } from '@/db/schema'
 import { eq } from 'drizzle-orm'
-import { int } from 'drizzle-orm/mysql-core'
-import { channel } from 'diagnostics_channel'
 import { createDefaultEmbed } from '@/utils'
 
 export const approveCommand: ChatInputCommand = {
 	data: new SlashCommandBuilder()
 		.setName('approve')
-		.setDescription('Approve application.')
+		.setDescription('Approve application')
 		.addStringOption((option) =>
 			option.setName('id').setDescription('Application ID').setRequired(true),
 		) as SlashCommandBuilder,
 	meta: {
 		name: 'approve',
-		description: 'Approve application.',
+		description: 'Approve application',
 		category: 'moderation',
 		cooldownSeconds: 3,
 	},
@@ -65,6 +63,7 @@ export const approveCommand: ChatInputCommand = {
 			})
 			return
 		}
+
 		if (linkedCase.status != 'pending') {
 			await interaction.reply({
 				content: 'This application has already been reviewed.',
@@ -83,10 +82,14 @@ export const approveCommand: ChatInputCommand = {
 			.where(eq(applications.applicationId, applicationId!))
 			.returning()
 
-		const modChannel = await interaction.guild.channels.fetch(process.env.MOD_CHANNEL_ID!)
+		const applicationsChannel = await interaction.guild.channels.fetch(
+			process.env.APPLICATIONS_CHANNEL_ID!,
+		)
 
-		if (modChannel && modChannel.isTextBased()) {
-			const linkedApplicationEmbed = await modChannel.messages.fetch(updated.linkedMessageId!)
+		if (applicationsChannel && applicationsChannel.isTextBased()) {
+			const linkedApplicationEmbed = await applicationsChannel.messages.fetch(
+				updated.linkedMessageId!,
+			)
 
 			const embed = EmbedBuilder.from(linkedApplicationEmbed.embeds[0])
 				.setTitle('Trusted Role Application - Approved')
