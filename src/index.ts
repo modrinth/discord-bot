@@ -14,6 +14,7 @@ import { startThreadStaleCheckCron } from '@/cron/threadStaleCheck'
 
 import { setLogger } from './logging/logger'
 import { createDiscordLogger } from './logging/discordLogger'
+import { startServerPauseDMs } from '@/cron/pauseDMs'
 
 const DEBUG_COMMAND_IDS = process.argv.includes('--debug-command-ids')
 
@@ -88,6 +89,7 @@ client.once(Events.ClientReady, async (readyClient) => {
 	}
 
 	// TODO: Change this to more universal src/cron/index.ts
+	startServerPauseDMs(client)
 	startThreadStaleCheckCron(client)
 })
 
