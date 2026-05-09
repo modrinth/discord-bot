@@ -1,6 +1,6 @@
 import 'dotenv/config'
 
-import { Client, Events, GatewayIntentBits, Partials } from 'discord.js'
+import { Client, Events, GatewayIntentBits, Partials, TextChannel } from 'discord.js'
 
 import commands from '@/commands'
 import listeners from '@/listeners'
@@ -15,6 +15,8 @@ import { startThreadStaleCheckCron } from '@/cron/threadStaleCheck'
 import { setLogger } from './logging/logger'
 import { createDiscordLogger } from './logging/discordLogger'
 import { startServerPauseDMs } from '@/cron/pauseDMs'
+import { watchlist } from './db/schema'
+import { eq } from 'drizzle-orm'
 
 const DEBUG_COMMAND_IDS = process.argv.includes('--debug-command-ids')
 
@@ -32,6 +34,7 @@ const client = new Client({
 		GatewayIntentBits.GuildMessages,
 		GatewayIntentBits.MessageContent,
 		GatewayIntentBits.GuildMessageReactions,
+		GatewayIntentBits.GuildMembers,
 	],
 	partials: [Partials.Message, Partials.Channel, Partials.User, Partials.Reaction],
 })
@@ -110,6 +113,22 @@ const { onReactionAdd, onReactionRemove } = createReactionHandlers(reactionListe
 client.on(Events.MessageCreate, onCreate)
 client.on(Events.MessageUpdate, onUpdate)
 client.on(Events.MessageDelete, onDelete)
+
+client.on(Events.GuildMemberAdd, async (member) => {
+	const watchlistUser = await db
+		.select()
+		.from(watchlist)
+		.where(eq(watchlist.discordUserId, member.id))
+		.limit(1)
+
+	if (watchlistUser[0]) {
+		const modChannel = await client.channels.fetch(process.env.MOD_CHANNEL_ID!)
+
+		if (modChannel && modChannel.isTextBased()) {
+			await (modChannel as TextChannel).send(watchlistUser[0].alertText)
+		}
+	}
+})
 
 // Slash commands
 const commandHandlers = createCommandRegistry(commands, {

@@ -8,6 +8,11 @@ export const users = pgTable('users', {
 	modrinthUserId: text('modrinth_user_id'),
 })
 
+export const watchlist = pgTable('watchlist', {
+	discordUserId: text('discord_user_id').primaryKey().unique(),
+	alertText: text('alert_text').notNull(),
+})
+
 export const reports = pgTable(
 	'reports',
 	{

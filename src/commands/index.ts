@@ -14,6 +14,7 @@ import { applyCommand } from '@/commands/apply'
 import { assignCommand } from '@/commands/assign'
 import { approveCommand } from '@/commands/approve'
 import { rejectCommand } from '@/commands/reject'
+import { watchlistCommand } from './watchlist'
 
 export const commands: AnyCommand[] = [
 	docsCommand,
@@ -30,6 +31,7 @@ export const commands: AnyCommand[] = [
 	assignCommand,
 	approveCommand,
 	rejectCommand,
+	watchlistCommand,
 ]
 
 export default commands
