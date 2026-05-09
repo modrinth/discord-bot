@@ -31,8 +31,8 @@ export const assignCommand: ChatInputCommand = {
 	async execute(interaction: ChatInputCommandInteraction) {
 		if (!interaction.guild) return
 
-		const applicationId = interaction.options.getString('id')
-		const discordModerator = interaction.options.getUser('moderator')
+		const applicationId = interaction.options.getString('id', true)
+		const discordModerator = interaction.options.getUser('moderator', true)
 
 		const invoker = await interaction.guild.members.fetch(interaction.user.id)
 
@@ -47,6 +47,18 @@ export const assignCommand: ChatInputCommand = {
 		if (discordModerator?.bot) {
 			await interaction.reply({
 				content: 'You just tried to assign an application to a bot, lazy.',
+				flags: 'Ephemeral',
+			})
+			return
+		}
+
+		if (
+			!(await interaction.guild.members.fetch(discordModerator.id)).roles.cache.has(
+				process.env.DISCORD_MODERATOR_ROLE_ID!,
+			)
+		) {
+			await interaction.reply({
+				content: "You've attempted to assign a user that's not a moderator member.",
 				flags: 'Ephemeral',
 			})
 			return
