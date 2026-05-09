@@ -1,6 +1,6 @@
 FROM node:22-slim AS build
 
-RUN npm install -g pnpm
+RUN npm install -g pnpm@latest-11
 RUN pnpm config set ignore-scripts false
 ENV PNPM_ENABLE_BUILD_DEPENDENCIES=1
 WORKDIR /app
