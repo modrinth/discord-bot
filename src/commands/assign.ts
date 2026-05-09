@@ -1,5 +1,10 @@
 import { ChatInputCommand } from '@/types'
-import { ChatInputCommandInteraction, EmbedBuilder, SlashCommandBuilder } from 'discord.js'
+import {
+	ChatInputCommandInteraction,
+	EmbedBuilder,
+	PermissionFlagsBits,
+	SlashCommandBuilder,
+} from 'discord.js'
 import process from 'node:process'
 import { PERMISSION_ERROR_TEXT } from '@/data'
 import { db } from '@/db'
@@ -10,6 +15,7 @@ export const assignCommand: ChatInputCommand = {
 	data: new SlashCommandBuilder()
 		.setName('assign')
 		.setDescription('Assign case to a moderator')
+		.setDefaultMemberPermissions(PermissionFlagsBits.BanMembers)
 		.addStringOption((option) =>
 			option.setName('id').setDescription('Application ID').setRequired(true),
 		)
@@ -33,6 +39,14 @@ export const assignCommand: ChatInputCommand = {
 		if (!invoker.roles.cache.has(process.env.DISCORD_MODERATOR_ROLE_ID!)) {
 			await interaction.reply({
 				content: PERMISSION_ERROR_TEXT,
+				flags: 'Ephemeral',
+			})
+			return
+		}
+
+		if (discordModerator?.bot) {
+			await interaction.reply({
+				content: 'You just tried to assign an application to a bot, lazy.',
 				flags: 'Ephemeral',
 			})
 			return

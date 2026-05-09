@@ -2,6 +2,7 @@ import { ChatInputCommand } from '@/types'
 import {
 	ChatInputCommandInteraction,
 	GuildMemberRoleManager,
+	PermissionFlagsBits,
 	SlashCommandBuilder,
 } from 'discord.js'
 import process from 'node:process'
@@ -13,6 +14,7 @@ export const pmCommand: ChatInputCommand = {
 	data: new SlashCommandBuilder()
 		.setName('pm')
 		.setDescription('Send a private message')
+		.setDefaultMemberPermissions(PermissionFlagsBits.BanMembers)
 		.addUserOption((option) =>
 			option.setName('user').setDescription('Discord User').setRequired(true),
 		)

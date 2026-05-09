@@ -1,6 +1,6 @@
 import * as process from 'node:process'
 
-import { ChatInputCommandInteraction, SlashCommandBuilder } from 'discord.js'
+import { ChatInputCommandInteraction, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js'
 import { eq } from 'drizzle-orm'
 
 import { db } from '@/db'
@@ -13,6 +13,7 @@ export const resetCommand: ChatInputCommand = {
 	data: new SlashCommandBuilder()
 		.setName('reset')
 		.setDescription("Remove user's trusted role with option to reset their message counter")
+		.setDefaultMemberPermissions(PermissionFlagsBits.BanMembers)
 		.addStringOption((option) =>
 			option.setName('id').setDescription('Discord User ID').setRequired(true),
 		)
@@ -52,6 +53,7 @@ export const resetCommand: ChatInputCommand = {
 
 		await interaction.reply({
 			content: `User's (\`${member.user.username}\`, ID: ${member.user.id}) trusted role and message counter has been reset.`,
+			flags: 'Ephemeral',
 		})
 		info(
 			`:pencil: User ${member.user} (\`${member.user.username}\`, ID: ${member.user.id}) has been reset by moderator (\`${interaction.user.username}\`, ID: ${interaction.user.id}).`,

@@ -11,6 +11,7 @@ import { db } from '@/db'
 import { applications, users } from '@/db/schema'
 import { and, desc, eq } from 'drizzle-orm'
 import { createDefaultEmbed } from '@/utils'
+import { info } from '@/logging/logger'
 
 export const applyCommand: ChatInputCommand = {
 	data: new SlashCommandBuilder()
@@ -46,6 +47,14 @@ export const applyCommand: ChatInputCommand = {
 			const ninetyDaysMs = 90 * 24 * 60 * 60 * 1000
 			const timestamp = Math.floor(Date.now() / 1000)
 
+			if (!user[0]) {
+				await interaction.reply({
+					content: 'You do not meet our activity requirements yet.',
+					flags: 'Ephemeral',
+				})
+				return
+			}
+
 			if (accountAgeMs < ninetyDaysMs || user[0].messagesSent < 100) {
 				await interaction.user.send({
 					embeds: [
@@ -69,6 +78,11 @@ export const applyCommand: ChatInputCommand = {
 					.limit(1)
 
 				if (pending.length > 0) {
+					await interaction.reply({
+						content:
+							':hourglass_flowing_sand: You already have a pending application, please be patient!',
+						flags: 'Ephemeral',
+					})
 					return
 				}
 
@@ -86,7 +100,7 @@ export const applyCommand: ChatInputCommand = {
 				if (rejected?.cooldownUntil && rejected.cooldownUntil.getTime() > Date.now()) {
 					await interaction.reply({
 						content:
-							'You are temporary blocked from submitting new applications, wait until the block is lifted try again later.',
+							':no_entry_sign: You are temporary blocked from submitting new applications, try again later.',
 						flags: 'Ephemeral',
 					})
 					return
@@ -138,6 +152,10 @@ export const applyCommand: ChatInputCommand = {
 							linkedMessageId: applicationEmbed.id,
 						})
 						.where(eq(applications.applicationId, created.applicationId))
+
+					info(
+						`:memo: New trusted role application has been created by <@${interaction.user.id}> (\`${interaction.user.username}\`, ID: ${interaction.user.id}).`,
+					)
 				}
 
 				await interaction.user.send({

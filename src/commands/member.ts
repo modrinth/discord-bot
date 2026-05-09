@@ -1,6 +1,6 @@
 import * as process from 'node:process'
 
-import { ChatInputCommandInteraction, SlashCommandBuilder } from 'discord.js'
+import { ChatInputCommandInteraction, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js'
 import { eq } from 'drizzle-orm'
 
 import { db } from '@/db'
@@ -12,6 +12,7 @@ export const memberCommand: ChatInputCommand = {
 	data: new SlashCommandBuilder()
 		.setName('member')
 		.setDescription('Get internal information about discord user')
+		.setDefaultMemberPermissions(PermissionFlagsBits.BanMembers)
 		.addUserOption((option) =>
 			option.setName('user').setDescription('Discord User').setRequired(true),
 		) as SlashCommandBuilder,

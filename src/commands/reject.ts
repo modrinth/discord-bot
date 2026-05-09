@@ -1,16 +1,23 @@
 import { ChatInputCommand } from '@/types'
-import { ChatInputCommandInteraction, EmbedBuilder, SlashCommandBuilder } from 'discord.js'
+import {
+	ChatInputCommandInteraction,
+	EmbedBuilder,
+	PermissionFlagsBits,
+	SlashCommandBuilder,
+} from 'discord.js'
 import process from 'node:process'
 import { PERMISSION_ERROR_TEXT } from '@/data'
 import { db } from '@/db'
 import { applications } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 import { createDefaultEmbed } from '@/utils'
+import { info } from '@/logging/logger'
 
 export const rejectCommand: ChatInputCommand = {
 	data: new SlashCommandBuilder()
 		.setName('reject')
 		.setDescription('Reject application')
+		.setDefaultMemberPermissions(PermissionFlagsBits.BanMembers)
 		.addStringOption((option) =>
 			option.setName('id').setDescription('Application ID').setRequired(true),
 		)
@@ -145,5 +152,9 @@ export const rejectCommand: ChatInputCommand = {
 			].join('\n'),
 			flags: 'Ephemeral',
 		})
+
+		info(
+			`:x: Trusted user application for <@${rejectedUser.user.id}> (\`${rejectedUser.user.username}\`, ID: ${rejectedUser.user.id}) has been rejected by a moderator <@${interaction.user.id}> (\`${interaction.user.username}\`, ID: ${interaction.user.id}) with a reason:\n\`\`\`${rejectionReason}\`\`\``,
+		)
 	},
 }

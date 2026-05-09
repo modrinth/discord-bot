@@ -1,16 +1,23 @@
 import { ChatInputCommand } from '@/types'
-import { ChatInputCommandInteraction, EmbedBuilder, SlashCommandBuilder } from 'discord.js'
+import {
+	ChatInputCommandInteraction,
+	EmbedBuilder,
+	PermissionFlagsBits,
+	SlashCommandBuilder,
+} from 'discord.js'
 import process from 'node:process'
 import { PERMISSION_ERROR_TEXT } from '@/data'
 import { db } from '@/db'
 import { applications } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 import { createDefaultEmbed } from '@/utils'
+import { info } from '@/logging/logger'
 
 export const approveCommand: ChatInputCommand = {
 	data: new SlashCommandBuilder()
 		.setName('approve')
 		.setDescription('Approve application')
+		.setDefaultMemberPermissions(PermissionFlagsBits.BanMembers)
 		.addStringOption((option) =>
 			option.setName('id').setDescription('Application ID').setRequired(true),
 		) as SlashCommandBuilder,
@@ -134,5 +141,9 @@ export const approveCommand: ChatInputCommand = {
 			].join('\n'),
 			flags: 'Ephemeral',
 		})
+
+		info(
+			`:white_check_mark: Trusted user application for <@${approvedUser.user.id}> (\`${approvedUser.user.username}\`, ID: ${approvedUser.user.id}) has been approved by a moderator <@${interaction.user.id}> (\`${interaction.user.username}\`, ID: ${interaction.user.id}).`,
+		)
 	},
 }
