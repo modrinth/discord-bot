@@ -1,10 +1,9 @@
 FROM node:22-slim AS build
 
 RUN npm install -g pnpm
-RUN pnpm config set ignore-scripts false
 WORKDIR /app
 COPY package.json pnpm-lock.yaml ./
-RUN pnpm install --frozen-lockfile
+RUN pnpm install --frozen-lockfile --unsafe-perm
 COPY . .
 RUN pnpm build
 
