@@ -1,11 +1,10 @@
 FROM node:22-slim AS build
 
-RUN npm install -g pnpm@latest-11
-RUN pnpm config set ignore-scripts false
-ENV PNPM_ENABLE_BUILD_DEPENDENCIES=1
+RUN corepack enable && corepack prepare pnpm@10.0.0 --activate
+RUN pnpm config set only-built-dependencies false
 WORKDIR /app
 COPY package.json pnpm-lock.yaml ./
-RUN pnpm install --frozen-lockfile --unsafe-perm --config.only-built-dependencies=false
+RUN pnpm install --frozen-lockfile --unsafe-perm
 COPY . .
 RUN pnpm build
 
