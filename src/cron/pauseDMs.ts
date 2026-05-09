@@ -7,12 +7,25 @@ export function startServerPauseDMs(client: Client) {
 		debug ? '*/10 * * * * *' : '0 * * * *', // run every hour on prod, every 10 sec on debug
 
 		async function () {
-			const incidentActions: IncidentActionsEditOptions = {
-				dmsDisabledUntil: Date.now() + 86400000,
+			console.log('[Cron][ServerPauseDMs] Running cron job...')
+
+			const guild = await client.guilds.fetch(process.env.GUILD_ID!)
+
+			const current = guild.incidentsData?.dmsDisabledUntil
+
+			// already enabled and not expired
+			if (current && current.getTime() > Date.now()) {
+				console.log('[Cron][ServerPauseDMs] DMs already paused')
+				return
 			}
 
-			if (!client.guilds.cache.get(process.env.GUILD_ID!)?.incidentsData?.dmsDisabledUntil)
-				await client.guilds.setIncidentActions(process.env.GUILD_ID!, incidentActions)
+			const incidentActions: IncidentActionsEditOptions = {
+				dmsDisabledUntil: new Date(Date.now() + 86400000),
+			}
+
+			await client.guilds.setIncidentActions(process.env.GUILD_ID!, incidentActions)
+
+			console.log('[Cron][ServerPauseDMs] DMs paused')
 		},
 		null,
 		true,
