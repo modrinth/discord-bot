@@ -5,7 +5,7 @@ RUN pnpm config set ignore-scripts false
 ENV PNPM_ENABLE_BUILD_DEPENDENCIES=1
 WORKDIR /app
 COPY package.json pnpm-lock.yaml ./
-RUN pnpm install --frozen-lockfile --unsafe-perm
+RUN pnpm install --frozen-lockfile --unsafe-perm --config.only-built-dependencies=false
 COPY . .
 RUN pnpm build
 
