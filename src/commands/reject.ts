@@ -23,6 +23,9 @@ export const rejectCommand: ChatInputCommand = {
 		)
 		.addStringOption((option) =>
 			option.setName('reason').setDescription('Rejection reason').setRequired(true),
+		)
+		.addBooleanOption((option) =>
+			option.setName('hide_reason').setDescription('Hides rejection reason from the user'),
 		) as SlashCommandBuilder,
 	meta: {
 		name: 'reject',
@@ -33,8 +36,9 @@ export const rejectCommand: ChatInputCommand = {
 	async execute(interaction: ChatInputCommandInteraction) {
 		if (!interaction.guild) return
 
-		const applicationId = interaction.options.getString('id')
-		const rejectionReason = interaction.options.getString('reason')
+		const applicationId = interaction.options.getString('id', true)
+		const rejectionReason = interaction.options.getString('reason', true)
+		const hideRejectionReason = interaction.options.getBoolean('hide_reason', false)
 
 		const invoker = await interaction.guild.members.fetch(interaction.user.id)
 
@@ -112,7 +116,7 @@ export const rejectCommand: ChatInputCommand = {
 				.setDescription(
 					[
 						`**Application has been reviewed by <@${updated.reviewedBy}>**`,
-						`Rejection reason: ${rejectionReason}`,
+						`Rejection reason: ${rejectionReason}${!hideRejectionReason ? '' : ` <:eyeoff:${process.env.EYE_OFF_EMOJI_ID}>`}`,
 						`User is blocked from submitting new application until <t:${Math.floor(cooldown.getTime() / 1000)}:F> (7-day penalty).`,
 					].join('\n'),
 				)
@@ -138,7 +142,7 @@ export const rejectCommand: ChatInputCommand = {
 					description: [
 						'Your application has been rejected, please try again later.',
 						' ',
-						rejectionReason,
+						hideRejectionReason ? '*Moderators have decided to hide the reason.*' : rejectionReason,
 					].join('\n'),
 				}).setColor(0xff496e),
 			],
