@@ -1,6 +1,8 @@
 FROM node:22-slim AS build
 
 RUN npm install -g pnpm
+RUN pnpm config set ignore-scripts false
+ENV PNPM_ENABLE_BUILD_DEPENDENCIES=1
 WORKDIR /app
 COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile --unsafe-perm
